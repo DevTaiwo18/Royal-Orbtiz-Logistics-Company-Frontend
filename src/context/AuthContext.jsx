@@ -14,11 +14,18 @@ export const AuthProvider = ({ children }) => {
   });
   const navigate = useNavigate();
 
+  const apiUrl = process.env.REACT_APP_API_URL; 
+
   // Login function
   const login = async (formData) => {
-    console.log(formData);
+    console.log('Sending login request with:', formData);
     try {
-      const response = await axios.post('https://royal-orbtiz-logistics-company-api.onrender.com/auth/login', formData);
+      const response = await axios.post(`${apiUrl}/auth/login`, formData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log('Login response:', response.data);
       setUser(response.data.user);
 
       // Save user data in local storage
@@ -26,8 +33,8 @@ export const AuthProvider = ({ children }) => {
 
       navigate('/dashboard'); // Redirect on successful login
     } catch (error) {
-      console.log(error);
       console.error('Login failed:', error.response?.data?.message || error.message);
+      setError('Login failed. Please check your username and password.');
     }
   };
 
@@ -46,7 +53,7 @@ export const AuthProvider = ({ children }) => {
   // Change Password function
   const changePassword = async (username, currentPassword, newPassword) => {
     try {
-      await axios.post('https://royal-orbtiz-logistics-company-api.onrender.com/auth/change-password', {
+      await axios.post(`${apiUrl}/auth/change-password`, {
         username,
         currentPassword,
         newPassword,

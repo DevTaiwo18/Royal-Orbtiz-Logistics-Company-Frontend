@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/20/solid';
 import { useAuth } from '../context/AuthContext';
+import logo from '../assets/f7de514a-567b-44f4-a60b-30521f14f728-removebg-preview.png';
+
 
 const Signin = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -34,10 +36,10 @@ const Signin = () => {
             <div className="sm:mx-auto sm:w-full sm:max-w-sm">
                 <img
                     alt="Your Company"
-                    src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
-                    className="mx-auto h-10 w-auto"
+                    src={logo}
+                    className="mx-auto h-28 w-auto"
                 />
-                <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
+                <h2 className="mt-2 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
                     Sign in to your account
                 </h2>
             </div>
