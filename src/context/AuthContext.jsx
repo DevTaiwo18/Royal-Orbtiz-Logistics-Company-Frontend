@@ -14,7 +14,8 @@ export const AuthProvider = ({ children }) => {
   });
   const navigate = useNavigate();
 
-  const apiUrl = process.env.REACT_APP_API_URL; 
+  // Access environment variable
+  const apiUrl = import.meta.env.VITE_APP_API_URL;
 
   // Login function
   const login = async (formData) => {
@@ -34,7 +35,6 @@ export const AuthProvider = ({ children }) => {
       navigate('/dashboard'); // Redirect on successful login
     } catch (error) {
       console.error('Login failed:', error.response?.data?.message || error.message);
-      setError('Login failed. Please check your username and password.');
     }
   };
 
@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
 
     // Redirect to login page or home page
-    navigate('/login');
+    navigate('/');
   };
 
   // Change Password function
