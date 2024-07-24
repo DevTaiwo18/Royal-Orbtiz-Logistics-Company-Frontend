@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { EyeIcon, EyeSlashIcon } from '@heroicons/react/20/solid';
+import { EyeIcon, EyeOffIcon } from '@heroicons/react/outline';
 import { useAuth } from '../context/AuthContext';
 import logo from '../assets/f7de514a-567b-44f4-a60b-30521f14f728-removebg-preview.png';
 
@@ -92,7 +92,7 @@ const Signin = () => {
                                 className="absolute inset-y-0 right-0 flex items-center pr-3"
                             >
                                 {showPassword ? (
-                                    <EyeSlashIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                    <EyeOffIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
                                 ) : (
                                     <EyeIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
                                 )}
