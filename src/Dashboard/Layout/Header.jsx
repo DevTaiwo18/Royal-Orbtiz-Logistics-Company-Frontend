@@ -5,7 +5,7 @@ import logo from '../../assets/f7de514a-567b-44f4-a60b-30521f14f728-removebg-pre
 
 const Header = () => {
   return (
-    <header className="bg-white text-purple-600 p-4 flex items-center shadow-md">
+    <header className="bg-white text-purple-600 p-5 flex items-center shadow-md fixed top-0 left-0 w-full z-50">
       <img src={logo} alt="Logo" className="h-10" />
       <button className="ml-auto p-2 text-purple-600 hover:bg-purple-100 rounded shadow-sm hover:shadow-md transition-shadow duration-300">
         <Logout className="h-6 w-6" />
