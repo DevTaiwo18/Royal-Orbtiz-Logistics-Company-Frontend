@@ -19,7 +19,7 @@ const formatPrice = (amount) => {
 };
 
 const Shipment = () => {
-  const { shipments, createShipment } = useShipments();
+  const { shipments, createShipment, fetchShipments } = useShipments();
   const { customers } = useCustomers();
   const [formData, setFormData] = useState({
     sender: '',
@@ -38,6 +38,7 @@ const Shipment = () => {
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0); // Key to trigger refresh
 
   const navigate = useNavigate();
 
@@ -45,6 +46,20 @@ const Shipment = () => {
     const selectedSender = customers.find(customer => customer._id === formData.sender);
     setSenderDetails(selectedSender || null);
   }, [formData.sender, customers]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        await fetchShipments(); // Fetch the latest shipments
+      } catch (error) {
+        console.error('Error fetching shipments:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [refreshKey]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -83,6 +98,7 @@ const Shipment = () => {
         amountPaid: ''
       });
       setIsFormVisible(false);
+      setRefreshKey(prev => prev + 1); // Increment refresh key to trigger re-render
     } catch (error) {
       console.error('Error creating shipment:', error);
     } finally {
@@ -90,11 +106,17 @@ const Shipment = () => {
     }
   };
 
-  const filteredShipments = shipments.filter(shipment =>
-    shipment.sender.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    shipment.receiverName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    shipment.waybillNumber.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredShipments = shipments.filter(shipment => {
+    const senderName = shipment.senderName?.toLowerCase() || '';
+    const receiverName = shipment.receiverName?.toLowerCase() || '';
+    const waybillNumber = shipment.waybillNumber?.toLowerCase() || '';
+
+    const searchTermLower = searchTerm.toLowerCase();
+
+    return senderName.includes(searchTermLower) ||
+      receiverName.includes(searchTermLower) ||
+      waybillNumber.includes(searchTermLower);
+  });
 
   const handleView = (id) => {
     navigate(`/shipment/${id}`);
@@ -107,7 +129,7 @@ const Shipment = () => {
 
         <div className="flex justify-between items-center mb-6">
           <input
-            className="p-3 outline-none border border-gray-300 rounded-lg w-full max-w-md"
+            className="p-2 outline-none border border-gray-300 rounded-lg w-full max-w-md"
             type="text"
             placeholder="Search shipments"
             value={searchTerm}
@@ -161,7 +183,7 @@ const Shipment = () => {
                     name="sender"
                     value={formData.sender}
                     onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     required
                   >
                     <option value="">Select Sender</option>
@@ -183,7 +205,7 @@ const Shipment = () => {
                     name="receiverName"
                     value={formData.receiverName}
                     onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     required
                   />
                 </div>
@@ -198,7 +220,7 @@ const Shipment = () => {
                     name="receiverAddress"
                     value={formData.receiverAddress}
                     onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     required
                   />
                 </div>
@@ -213,7 +235,7 @@ const Shipment = () => {
                     name="receiverPhone"
                     value={formData.receiverPhone}
                     onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     required
                   />
                 </div>
@@ -228,7 +250,7 @@ const Shipment = () => {
                     name="description"
                     value={formData.description}
                     onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     required
                   />
                 </div>
@@ -242,12 +264,12 @@ const Shipment = () => {
                     name="deliveryType"
                     value={formData.deliveryType}
                     onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     required
                   >
                     <option value="">Select Delivery Type</option>
-                    <option value="home">Home</option>
-                    <option value="office">Office</option>
+                    <option value="Home Delivery">Home</option>
+                    <option value="Office Pickup">Office</option>
                   </select>
                 </div>
 
@@ -261,7 +283,7 @@ const Shipment = () => {
                     name="originState"
                     value={formData.originState}
                     onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     required
                   />
                 </div>
@@ -276,7 +298,7 @@ const Shipment = () => {
                     name="destinationState"
                     value={formData.destinationState}
                     onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     required
                   />
                 </div>
@@ -291,7 +313,7 @@ const Shipment = () => {
                     name="price"
                     value={formData.price}
                     onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     required
                   />
                 </div>
@@ -305,7 +327,7 @@ const Shipment = () => {
                     name="paymentMethod"
                     value={formData.paymentMethod}
                     onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     required
                   >
                     <option value="">Select Payment Method</option>
@@ -324,7 +346,7 @@ const Shipment = () => {
                     name="amountPaid"
                     value={formData.amountPaid}
                     onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     required
                   />
                 </div>
@@ -345,27 +367,27 @@ const Shipment = () => {
           <h2 className="text-lg font-semibold mb-4">Shipment List</h2>
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waybill Number</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sender</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Receiver Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount Paid</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <tr className=''>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Waybill Number</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Sender</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Receiver Name</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Amount Paid</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredShipments.map(shipment => (
-                <tr key={shipment._id}>
-                  <td className="py-3 px-4 border-b border-gray-300">{shipment.waybillNumber}</td>
-                  <td className="py-3 px-4 border-b border-gray-300">{shipment.sender}</td>
-                  <td className="py-3 px-4 border-b border-gray-300">{shipment.receiverName}</td>
-                  <td className="py-3 px-4 border-b border-gray-300">{formatPrice(shipment.price)}</td>
-                  <td className="py-3 px-4 border-b border-gray-300">{formatPrice(shipment.amountPaid)}</td>
+                <tr key={shipment._id} className='text-center'>
+                  <td className="font-semibold text-xs px-4 border-b border-gray-300">{shipment.waybillNumber}</td>
+                  <td className="font-semibold text-xs px-4 border-b border-gray-300">{shipment.senderName}</td>
+                  <td className=" font-semibold text-xs px-4 border-b border-gray-300">{shipment.receiverName}</td>
+                  <td className="font-semibold text-xs px-4 border-b border-gray-300">{formatPrice(shipment.price)}</td>
+                  <td className="font-semibold text-xs px-4 border-b border-gray-300">{formatPrice(shipment.amountPaid)}</td>
                   <td className="py-3 px-4 border-b border-gray-300">
                     <button
                       onClick={() => handleView(shipment._id)}
-                      className="bg-blue-500 text-white py-1 px-3 rounded-lg hover:bg-blue-600"
+                      className="bg-purple-500 text-white py-1 px-3 text-xs font-bold rounded-lg hover:bg-purple-600"
                     >
                       View
                     </button>
