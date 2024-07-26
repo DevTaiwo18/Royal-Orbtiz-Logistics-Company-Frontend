@@ -24,6 +24,17 @@ export const ShipmentProvider = ({ children }) => {
         }
     };
 
+    // Fetch a single shipment by ID
+    const fetchShipmentById = async (id) => {
+        try {
+            const response = await axios.get(`${API_URL}/shipments/${id}`);
+            return response.data;
+        } catch (err) {
+            setError(err.message);
+            return null;
+        }
+    };
+
     // Create a new shipment
     const createShipment = async (shipment) => {
         try {
@@ -66,7 +77,7 @@ export const ShipmentProvider = ({ children }) => {
     }, []);
 
     return (
-        <ShipmentContext.Provider value={{ shipments, loading, error, createShipment, updateShipment, deleteShipment, fetchShipments }}>
+        <ShipmentContext.Provider value={{ shipments, loading, error, createShipment, updateShipment, deleteShipment, fetchShipments, fetchShipmentById }}>
             {children}
         </ShipmentContext.Provider>
     );

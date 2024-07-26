@@ -38,7 +38,7 @@ const Shipment = () => {
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0); // Key to trigger refresh
+  const [refreshKey, setRefreshKey] = useState(0); 
 
   const navigate = useNavigate();
 
@@ -51,7 +51,7 @@ const Shipment = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        await fetchShipments(); // Fetch the latest shipments
+        await fetchShipments(); 
       } catch (error) {
         console.error('Error fetching shipments:', error);
       } finally {
@@ -98,7 +98,7 @@ const Shipment = () => {
         amountPaid: ''
       });
       setIsFormVisible(false);
-      setRefreshKey(prev => prev + 1); // Increment refresh key to trigger re-render
+      setRefreshKey(prev => prev + 1); 
     } catch (error) {
       console.error('Error creating shipment:', error);
     } finally {
@@ -119,7 +119,7 @@ const Shipment = () => {
   });
 
   const handleView = (id) => {
-    navigate(`/shipment/${id}`);
+    navigate(`/dashboard/shipment/${id}`);
   };
 
   return (

@@ -8,6 +8,7 @@ import Customers from './Service/Customer/Customers';
 import Shipment from './Service/Shipment/Shipment';
 import Receipts from './Service/Receipts/Receipts';
 import Setting from './Service/Setting/Setting';
+import DisplayShipment from './Service/Shipment/DisplayShipment';
 
 const Dashboard = () => {
   return (
@@ -17,6 +18,7 @@ const Dashboard = () => {
         <Vertical />
         <main className="flex-1 shadow-xl ml-64 p-4">
           <Routes>
+            <Route path='/shipment/:id' element={<DisplayShipment />} />
             <Route path="/" element={<Dashboardindex />} />
             <Route path="/customer" element={<Customers />} />
             <Route path="/shipment" element={<Shipment />} />

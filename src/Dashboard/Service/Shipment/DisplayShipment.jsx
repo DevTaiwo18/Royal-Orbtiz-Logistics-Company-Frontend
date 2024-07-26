@@ -1,58 +1,85 @@
-import React from 'react';
-import { useParams } from 'react-router-dom'; // Import useParams to get route params
-import { useShipments } from '../../../context/ShipmentContext'; // Import useShipments from context
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { useShipments } from '../../../context/ShipmentContext';
 
 const DisplayShipment = () => {
-  const { id } = useParams(); // Get the shipment ID from the URL
-  const { shipments } = useShipments(); // Get shipments from context
+  const { id } = useParams();
+  const { fetchShipmentById, error } = useShipments();
+  const [shipment, setShipment] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Find the shipment by ID
-  const shipment = shipments.find(shipment => shipment._id === id);
+  useEffect(() => {
+    const getShipment = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchShipmentById(id);
+        setShipment(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (!shipment) {
-    return <p>Shipment not found</p>;
-  }
+    getShipment();
+  }, [id, fetchShipmentById]);
+
+  if (loading) return <p className="text-center text-gray-600">Loading...</p>;
+  if (error) return <p className="text-center text-red-600">Error: {error}</p>;
+  if (!shipment) return <p className="text-center text-gray-600">Shipment not found</p>;
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <div className="bg-white p-6 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold mb-6">Shipment Details</h1>
-        <div className="space-y-4">
-          <div>
-            <strong>Waybill Number:</strong> {shipment.waybillNumber}
+    <div className="p-6 bg-gray-50 min-h-screen flex items-center justify-center">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-full">
+        <h1 className="text-3xl font-bold mb-6 text-gray-800">Shipment Details</h1>
+        <div className="space-y-6">
+          <div className="flex justify-between">
+            <span className="font-semibold text-gray-700">Waybill Number:</span>
+            <span className="text-gray-800 text-bold">{shipment.waybillNumber}</span>
           </div>
-          <div>
-            <strong>Sender:</strong> {shipment.sender}
+          <div className="flex justify-between">
+            <span className="font-semibold text-gray-800">Sender Name:</span>
+            <span className="text-gray-800 text-bold">{shipment.senderName}</span>
           </div>
-          <div>
-            <strong>Receiver Name:</strong> {shipment.receiverName}
+          <div className="flex justify-between">
+            <span className="font-semibold text-gray-800">Receiver Name:</span>
+            <span className="text-gray-800 text-bold">{shipment.receiverName}</span>
           </div>
-          <div>
-            <strong>Receiver Address:</strong> {shipment.receiverAddress}
+          <div className="flex justify-between">
+            <span className="font-semibold text-gray-800">Receiver Address:</span>
+            <span className="text-gray-800 text-bold">{shipment.receiverAddress}</span>
           </div>
-          <div>
-            <strong>Receiver Phone:</strong> {shipment.receiverPhone}
+          <div className="flex justify-between">
+            <span className="font-semibold text-gray-800">Receiver Phone:</span>
+            <span className="text-gray-800 text-bold">{shipment.receiverPhone}</span>
           </div>
-          <div>
-            <strong>Description:</strong> {shipment.description}
+          <div className="flex justify-between">
+            <span className="font-semibold text-gray-800">Description:</span>
+            <span className="text-gray-800 text-bold">{shipment.description}</span>
           </div>
-          <div>
-            <strong>Delivery Type:</strong> {shipment.deliveryType}
+          <div className="flex justify-between">
+            <span className="font-semibold text-gray-800">Delivery Type:</span>
+            <span className="text-gray-800 text-bold">{shipment.deliveryType}</span>
           </div>
-          <div>
-            <strong>Origin State:</strong> {shipment.originState}
+          <div className="flex justify-between">
+            <span className="font-semibold text-gray-800">Origin State:</span>
+            <span className="text-gray-800 text-bold">{shipment.originState}</span>
           </div>
-          <div>
-            <strong>Destination State:</strong> {shipment.destinationState}
+          <div className="flex justify-between">
+            <span className="font-semibold text-gray-800">Destination State:</span>
+            <span className="text-gray-800 text-bold">{shipment.destinationState}</span>
           </div>
-          <div>
-            <strong>Price:</strong> {shipment.price}
+          <div className="flex justify-between">
+            <span className="font-semibold text-gray-800">Price:</span>
+            <span className="text-gray-800 text-bold">{shipment.price}</span>
           </div>
-          <div>
-            <strong>Payment Method:</strong> {shipment.paymentMethod}
+          <div className="flex justify-between">
+            <span className="font-semibold text-gray-800">Payment Method:</span>
+            <span className="text-gray-800 text-bold">{shipment.paymentMethod}</span>
           </div>
-          <div>
-            <strong>Amount Paid:</strong> {shipment.amountPaid}
+          <div className="flex justify-between">
+            <span className="font-semibold text-gray-800">Amount Paid:</span>
+            <span className="text-gray-800 text-bold">{shipment.amountPaid}</span>
           </div>
         </div>
       </div>
