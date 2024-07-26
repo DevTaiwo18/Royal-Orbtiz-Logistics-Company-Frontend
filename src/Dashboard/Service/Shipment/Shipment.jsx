@@ -129,7 +129,7 @@ const Shipment = () => {
 
         <div className="flex justify-between items-center mb-6">
           <input
-            className="p-2 outline-none border border-gray-300 rounded-lg w-full max-w-md"
+            className="p-2 outline-none text-sm border border-gray-300 rounded-lg w-full max-w-md"
             type="text"
             placeholder="Search shipments"
             value={searchTerm}
@@ -183,7 +183,7 @@ const Shipment = () => {
                     name="sender"
                     value={formData.sender}
                     onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     required
                   >
                     <option value="">Select Sender</option>
@@ -205,7 +205,7 @@ const Shipment = () => {
                     name="receiverName"
                     value={formData.receiverName}
                     onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     required
                   />
                 </div>
@@ -220,7 +220,7 @@ const Shipment = () => {
                     name="receiverAddress"
                     value={formData.receiverAddress}
                     onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     required
                   />
                 </div>
@@ -235,7 +235,7 @@ const Shipment = () => {
                     name="receiverPhone"
                     value={formData.receiverPhone}
                     onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     required
                   />
                 </div>
@@ -250,7 +250,7 @@ const Shipment = () => {
                     name="description"
                     value={formData.description}
                     onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     required
                   />
                 </div>
@@ -264,7 +264,7 @@ const Shipment = () => {
                     name="deliveryType"
                     value={formData.deliveryType}
                     onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     required
                   >
                     <option value="">Select Delivery Type</option>
@@ -283,7 +283,7 @@ const Shipment = () => {
                     name="originState"
                     value={formData.originState}
                     onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     required
                   />
                 </div>
@@ -298,7 +298,7 @@ const Shipment = () => {
                     name="destinationState"
                     value={formData.destinationState}
                     onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     required
                   />
                 </div>
@@ -313,7 +313,7 @@ const Shipment = () => {
                     name="price"
                     value={formData.price}
                     onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     required
                   />
                 </div>
@@ -327,7 +327,7 @@ const Shipment = () => {
                     name="paymentMethod"
                     value={formData.paymentMethod}
                     onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     required
                   >
                     <option value="">Select Payment Method</option>
@@ -346,7 +346,7 @@ const Shipment = () => {
                     name="amountPaid"
                     value={formData.amountPaid}
                     onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     required
                   />
                 </div>
@@ -371,6 +371,7 @@ const Shipment = () => {
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Waybill Number</th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Sender</th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Receiver Name</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Amount Paid</th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -382,6 +383,7 @@ const Shipment = () => {
                   <td className="font-semibold text-xs px-4 border-b border-gray-300">{shipment.waybillNumber}</td>
                   <td className="font-semibold text-xs px-4 border-b border-gray-300">{shipment.senderName}</td>
                   <td className=" font-semibold text-xs px-4 border-b border-gray-300">{shipment.receiverName}</td>
+                  <td className=" font-semibold text-xs px-4 border-b border-gray-300">{shipment.status}</td>
                   <td className="font-semibold text-xs px-4 border-b border-gray-300">{formatPrice(shipment.price)}</td>
                   <td className="font-semibold text-xs px-4 border-b border-gray-300">{formatPrice(shipment.amountPaid)}</td>
                   <td className="py-3 px-4 border-b border-gray-300">

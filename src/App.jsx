@@ -6,6 +6,7 @@ import Dashboard from './Dashboard/Dashboard';
 import ProtectedRoute from './Dashboard/Component/ProtectedRoute ';
 import { CustomerProvider } from './context/CustomerContext';
 import { ShipmentProvider } from './context/ShipmentContext';
+import { ReceiptsProvider } from './context/ReceiptsContext';
 
 const App = () => {
   return (
@@ -13,17 +14,19 @@ const App = () => {
       <AuthProvider>
         <CustomerProvider>
           <ShipmentProvider>
-            <Routes>
-              <Route path="/" element={<Signin />} />
-              <Route
-                path="/dashboard/*"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
+            <ReceiptsProvider>
+              <Routes>
+                <Route path="/" element={<Signin />} />
+                <Route
+                  path="/dashboard/*"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </ReceiptsProvider>
           </ShipmentProvider>
         </CustomerProvider>
       </AuthProvider>
