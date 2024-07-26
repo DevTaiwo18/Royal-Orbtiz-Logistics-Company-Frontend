@@ -45,7 +45,7 @@ const Setting = () => {
   return (
     <div className="flex flex-col h-screen p-6 bg-gray-100">
       <div className="flex-1 bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-2xl font-bold mb-6">Settings</h1>
+        <h1 className="text-lg font-bold mb-6">Settings</h1>
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="space-y-6">

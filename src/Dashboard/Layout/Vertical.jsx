@@ -5,8 +5,8 @@ import { HomeIcon, UserGroupIcon, TruckIcon, DocumentTextIcon, CogIcon } from '@
 
 const Vertical = () => {
   return (
-    <aside className="bg-[#9333EA] text-white w-64 h-screen p-4 fixed flex flex-col">
-      <nav className="flex flex-col flex-grow">
+    <aside className="bg-[#9333EA] shadow-xl text-white w-64 h-screen p-4 fixed flex flex-col">
+      <nav className="flex flex-col shadow-xl flex-grow">
         <ul className="space-y-6 mt-5">
           <li className="flex items-center space-x-4">
             <HomeIcon className="h-6 w-6" />

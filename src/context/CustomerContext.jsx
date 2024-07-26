@@ -20,6 +20,7 @@ export const CustomerProvider = ({ children }) => {
     setLoading(true);
     try {
       const response = await axios.get(`${API_URL}/customers`);
+      console.log(response.data);
       setCustomers(response.data);
     } catch (err) {
       setError('Failed to fetch customers.');
@@ -79,7 +80,7 @@ export const CustomerProvider = ({ children }) => {
   return (
     <CustomerContext.Provider
       value={{
-        customers: paginatedCustomers,
+        customers,
         loading,
         error,
         addCustomer,
@@ -87,7 +88,8 @@ export const CustomerProvider = ({ children }) => {
         deleteCustomer,
         currentPage,
         setCurrentPage,
-        totalPages
+        totalPages,
+        fetchCustomers
       }}
     >
       {children}

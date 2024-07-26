@@ -25,7 +25,7 @@ const Signin = () => {
             await login(formData);
             setFormData({ username: '', password: '' });
         } catch (error) {
-            setError('Login failed. Please check your username and password.');
+            setError('Please check your username and password.');
         } finally {
             setLoading(false); // Stop loading
         }
@@ -39,7 +39,7 @@ const Signin = () => {
                     src={logo}
                     className="mx-auto h-28 w-auto"
                 />
-                <h2 className="mt-2 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
+                <h2 className="mt-2 text-center text-lg font-bold leading-9 tracking-tight text-gray-900">
                     Sign in to your account
                 </h2>
             </div>

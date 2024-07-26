@@ -107,7 +107,7 @@ const Customers = () => {
 
       {showAddForm && (
         <form onSubmit={editingCustomer ? handleUpdateCustomer : handleAddCustomer} className="mb-6 p-6 bg-white shadow-md rounded-lg">
-          <h2 className="text-2xl font-semibold mb-4">{editingCustomer ? 'Edit Customer' : 'Add New Customer'}</h2>
+          <h2 className="text-lg font-semibold mb-4">{editingCustomer ? 'Edit Customer' : 'Add New Customer'}</h2>
           <div className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
@@ -119,7 +119,7 @@ const Customers = () => {
                 name="name"
                 value={newCustomer.name}
                 onChange={handleInputChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm p-2"
+                className="mt-1 block w-full outline-none border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm p-2"
                 required
               />
             </div>
@@ -133,7 +133,7 @@ const Customers = () => {
                 name="address"
                 value={newCustomer.address}
                 onChange={handleInputChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm p-2"
+                className="mt-1 block w-full outline-none border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm p-2"
                 required
               />
             </div>
@@ -147,7 +147,7 @@ const Customers = () => {
                 name="phoneNumber"
                 value={newCustomer.phoneNumber}
                 onChange={handleInputChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm p-2"
+                className="mt-1 block w-full outline-none border border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm p-2"
                 required
               />
             </div>

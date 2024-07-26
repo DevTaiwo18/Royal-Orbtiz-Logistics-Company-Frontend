@@ -4,7 +4,7 @@ import React from 'react';
 const Dashboard_index = () => {
   return (
     <div>
-      <h2 className="text-2xl font-semibold">Dashboard Content</h2>
+      <h2 className="text-lg font-semibold">Dashboard Content</h2>
     </div>
   );
 };
