@@ -49,8 +49,8 @@ const ViewPrice = () => {
               {prices.map((price) => (
                 <tr key={price._id}>
                   <td className="py-2 px-4 border-b text-gray-600">{price.categories[0]?.name}</td>
-                  <td className="py-2 px-4 border-b text-gray-600">${price.categories[0]?.basePrice.toFixed(2)}</td>
-                  <td className="py-2 px-4 border-b text-gray-600">${price.categories[0]?.insuranceCharge.toFixed(2)}</td>
+                  <td className="py-2 px-4 border-b text-gray-600">₦{price.categories[0]?.basePrice.toLocaleString()}</td>
+                  <td className="py-2 px-4 border-b text-gray-600">₦{price.categories[0]?.insuranceCharge.toLocaleString()}</td>
                   <td className="py-2 px-4 border-b text-gray-600">
                     <div className="flex space-x-2">
                       <button

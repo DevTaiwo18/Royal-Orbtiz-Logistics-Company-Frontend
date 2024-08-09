@@ -30,6 +30,10 @@ const ViewPriceSinglePage = () => {
     navigate('/dashboard/view'); // Navigate back to the specified route
   };
 
+  const formatCurrency = (amount) => {
+    return `₦${amount.toLocaleString()}`;
+  };
+
   if (loading) return <div className="text-center text-gray-500">Loading...</div>;
   if (error) return <div className="text-center text-red-500">{error}</div>;
 
@@ -49,14 +53,14 @@ const ViewPriceSinglePage = () => {
       <div className="bg-white border border-gray-300 rounded-lg shadow-lg p-8 space-y-6">
         <h2 className="text-3xl font-semibold text-gray-700">{singlePrice.categories[0]?.name}</h2>
         <div className="text-gray-600 space-y-4">
-          <p><strong>Base Price:</strong> ${singlePrice.categories[0]?.basePrice.toFixed(2)}</p>
-          <p><strong>Insurance Charge:</strong> ${singlePrice.categories[0]?.insuranceCharge.toFixed(2)}</p>
+          <p><strong>Base Price:</strong> {formatCurrency(singlePrice.categories[0]?.basePrice)}</p>
+          <p><strong>Insurance Charge:</strong> {formatCurrency(singlePrice.categories[0]?.insuranceCharge)}</p>
           <div>
             <strong>Weight Charges:</strong>
             <ul className="list-disc ml-5 space-y-1">
               {singlePrice.categories[0]?.weightCharges.map((charge, index) => (
                 <li key={index}>
-                  {charge.range}: ${charge.charge}
+                  {charge.range}: {formatCurrency(charge.charge)}
                 </li>
               ))}
             </ul>
@@ -66,7 +70,7 @@ const ViewPriceSinglePage = () => {
             <ul className="list-disc ml-5 space-y-1">
               {singlePrice.categories[0]?.deliveryCharges.map((charge, index) => (
                 <li key={index}>
-                  {charge.type}: ${charge.charge}
+                  {charge.type}: {formatCurrency(charge.charge)}
                 </li>
               ))}
             </ul>
@@ -76,7 +80,7 @@ const ViewPriceSinglePage = () => {
             <ul className="list-disc ml-5 space-y-1">
               {singlePrice.categories[0]?.deliveryScopeCharges.map((charge, index) => (
                 <li key={index}>
-                  {charge.scope}: ${charge.charge}
+                  {charge.scope}: {formatCurrency(charge.charge)}
                 </li>
               ))}
             </ul>

@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useContext, useCallback } from 'react';
 import axios from 'axios';
 
 // Create Context
@@ -10,61 +10,58 @@ const API_URL = import.meta.env.VITE_APP_API_URL;
 // Context Provider Component
 export const CustomerProvider = ({ children }) => {
   const [customers, setCustomers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [customerByPhone, setCustomerByPhone] = useState(null); // State for customer by phone
+  const [customerByPhone, setCustomerByPhone] = useState(null);
 
-  // Add new customer
-  const addCustomer = async (customer) => {
+  // Function to handle API requests with centralized error handling
+  const apiRequest = useCallback(async (requestFn) => {
     setLoading(true);
     try {
-      const response = await axios.post(`${API_URL}/customers`, customer);
-      setCustomers((prevCustomers) => [...prevCustomers, response.data]);
-    } catch (err) {
-      setError('Failed to add customer. Please try again later.');
+      const response = await requestFn();
+      return response;
+    } catch (error) {
+      console.error('API Error:', error);
+      setError('An error occurred. Please try again later.');
+      throw error;
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Fetch all customers
+  const fetchCustomers = useCallback(async () => {
+    const response = await apiRequest(() => axios.get(`${API_URL}/customers/`));
+    setCustomers(response.data);
+  }, [apiRequest]);
 
   // Update existing customer
-  const updateCustomer = async (id, updatedCustomer) => {
-    setLoading(true);
-    try {
-      const response = await axios.put(`${API_URL}/customers/${id}`, updatedCustomer);
-      setCustomers((prevCustomers) => prevCustomers.map((customer) => (customer._id === id ? response.data : customer)));
-    } catch (err) {
-      setError('Failed to update customer. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const updateCustomer = useCallback(async (id, updatedCustomer) => {
+    const response = await apiRequest(() => axios.put(`${API_URL}/customers/${id}`, updatedCustomer));
+    setCustomers((prevCustomers) =>
+      prevCustomers.map((customer) => (customer._id === id ? response.data : customer))
+    );
+  }, [apiRequest]);
 
   // Delete customer
-  const deleteCustomer = async (id) => {
-    setLoading(true);
-    try {
-      await axios.delete(`${API_URL}/customers/${id}`);
-      setCustomers((prevCustomers) => prevCustomers.filter((customer) => customer._id !== id));
-    } catch (err) {
-      setError('Failed to delete customer. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const deleteCustomer = useCallback(async (id) => {
+    await apiRequest(() => axios.delete(`${API_URL}/customers/${id}`));
+    setCustomers((prevCustomers) => prevCustomers.filter((customer) => customer._id !== id));
+  }, [apiRequest]);
 
   // Fetch customer by phone number
-  const fetchCustomerByPhone = async (phoneNumber) => {
-    setLoading(true);
-    try {
-      const response = await axios.get(`${API_URL}/customers/phone/${phoneNumber}`);
-      setCustomerByPhone(response.data);
-    } catch (err) {
-      setError('Failed to fetch customer by phone number. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const fetchCustomerByPhone = useCallback(async (phoneNumber) => {
+    const response = await apiRequest(() =>
+      axios.get(`${API_URL}/customers`, { params: { phone: phoneNumber } })
+    );
+    setCustomerByPhone(response.data);
+  }, [apiRequest]);
+
+  // Add new customer
+  const addCustomer = useCallback(async (newCustomer) => {
+    const response = await apiRequest(() => axios.post(`${API_URL}/customers/`, newCustomer));
+    setCustomers((prevCustomers) => [...prevCustomers, response.data]);
+  }, [apiRequest]);
 
   return (
     <CustomerContext.Provider
@@ -76,6 +73,7 @@ export const CustomerProvider = ({ children }) => {
         updateCustomer,
         deleteCustomer,
         fetchCustomerByPhone,
+        fetchCustomers,
         customerByPhone
       }}
     >
