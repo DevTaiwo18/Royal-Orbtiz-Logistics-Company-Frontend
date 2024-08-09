@@ -10,7 +10,11 @@ const Vertical = () => {
         <ul className="space-y-6 mt-5">
           <li className="flex items-center space-x-4">
             <HomeIcon className="h-6 w-6" />
-            <Link to="/dashboard" className="flex-1 hover:text-gray-300">Dashboard</Link>
+            <Link to="/dashboard" className="flex-1 hover:text-gray-300">Setting Of Price</Link>
+          </li>
+          <li className="flex items-center space-x-4">
+            <HomeIcon className="h-6 w-6" />
+            <Link to="/dashboard/view" className="flex-1 hover:text-gray-300">View Prices</Link>
           </li>
           <li className="flex items-center space-x-4">
             <UserGroupIcon className="h-6 w-6" />
