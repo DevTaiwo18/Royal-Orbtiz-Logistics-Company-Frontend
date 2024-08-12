@@ -84,6 +84,7 @@ export const PriceProvider = ({ children }) => {
     setLoading(true);
     try {
       const response = await axios.post(`${API_URL}/prices/calculate`, shipmentDetails);
+      console.log(response.data);
       return response.data.totalPrice;
     } catch (err) {
       setError('Failed to calculate price.');

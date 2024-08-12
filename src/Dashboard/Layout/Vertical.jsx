@@ -25,8 +25,8 @@ const Vertical = () => {
             <Link to="/dashboard/shipment" className="flex-1 hover:text-gray-300">Shipments</Link>
           </li>
           <li className="flex items-center space-x-4">
-            <DocumentTextIcon className="h-6 w-6" />
-            <Link to="/dashboard/receipt" className="flex-1 hover:text-gray-300">Receipts</Link>
+            <TruckIcon className="h-6 w-6" />
+            <Link to="/dashboard/viewshipment" className="flex-1 hover:text-gray-300">View Shipment</Link>
           </li>
           <li className="flex items-center space-x-4">
             <CogIcon className="h-6 w-6" />

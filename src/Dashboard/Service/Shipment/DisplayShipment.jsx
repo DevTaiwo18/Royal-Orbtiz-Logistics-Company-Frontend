@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useReceipts } from '../../../context/ReceiptsContext';
 import { useShipments } from '../../../context/ShipmentContext';
-import { Document, Page } from '@react-pdf/renderer';
+import { Document, Page, pdfjs } from 'react-pdf';
+
+// Set up the PDF worker
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js`;
 
 const DisplayShipment = () => {
     const { id } = useParams();
@@ -38,7 +41,7 @@ const DisplayShipment = () => {
     }, [shipment?.waybillNumber, singleReceipt?.waybillNumber, fetchReceiptByWaybillNumber]);
 
     const handlePrint = () => {
-        if (!singleReceipt || !singleReceipt.pdf || !singleReceipt.pdf.data) {
+        if (!singleReceipt?.pdf?.data) {
             console.error('No receipt data available for printing.');
             return;
         }
@@ -67,7 +70,7 @@ const DisplayShipment = () => {
                 <iframe src="${pdfUrl}"></iframe>
                 <script>
                     window.onload = function() {
-                        setTimeout(function() {
+                        setTimeout(() => {
                             window.print();
                             window.onafterprint = function() {
                                 window.close();
@@ -81,6 +84,11 @@ const DisplayShipment = () => {
         printWindow.document.close();
     };
 
+    // Format currency with ₦
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount);
+    };
+
     if (loading) return <p className="text-center text-gray-600">Loading...</p>;
     if (shipmentError) return <p className="text-center text-red-600">Shipment Error: {shipmentError}</p>;
     if (receiptError) return <p className="text-center text-red-600">Receipt Error: {receiptError}</p>;
@@ -89,22 +97,22 @@ const DisplayShipment = () => {
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen flex items-center justify-center">
-            <div className="bg-white p-8 rounded-lg shadow-lg w-full">
+            <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-4xl">
                 <h1 className="text-3xl font-bold mb-6 text-gray-800">Shipment Details</h1>
                 <div className="space-y-6">
                     {/* Shipment Details */}
                     {[
-                        { label: 'Waybill Number', value: shipment?.waybillNumber },
-                        { label: 'Sender Name', value: shipment?.senderName },
-                        { label: 'Receiver Name', value: shipment?.receiverName },
-                        { label: 'Receiver Address', value: shipment?.receiverAddress },
-                        { label: 'Receiver Phone', value: shipment?.receiverPhone },
-                        { label: 'Description', value: shipment?.description },
-                        { label: 'Delivery Type', value: shipment?.deliveryType },
-                        { label: 'Origin State', value: shipment?.originState },
-                        { label: 'Destination State', value: shipment?.destinationState },
-                        { label: 'Price', value: shipment?.price },
-                        { label: 'Paid Amount', value: shipment?.paidAmount }
+                        { label: 'Waybill Number', value: shipment.waybillNumber },
+                        { label: 'Sender Name', value: shipment.senderName },
+                        { label: 'Receiver Name', value: shipment.receiverName },
+                        { label: 'Receiver Address', value: shipment.receiverAddress },
+                        { label: 'Receiver Phone', value: shipment.receiverPhone },
+                        { label: 'Description', value: shipment.description },
+                        { label: 'Delivery Type', value: shipment.deliveryType },
+                        { label: 'Origin State', value: shipment.originState },
+                        { label: 'Destination State', value: shipment.destinationState },
+                        { label: 'Price', value: formatCurrency(shipment.totalPrice) },
+                        { label: 'Paid Amount', value: formatCurrency(shipment.amountPaid) }
                     ].map((item, index) => (
                         <div key={index} className="flex justify-between">
                             <span className="font-semibold text-gray-800">{item.label}:</span>
@@ -116,16 +124,20 @@ const DisplayShipment = () => {
                     <div className="mt-6">
                         <h2 className="text-2xl font-bold mb-4 text-gray-800">Receipt</h2>
                         <div className="border border-gray-300 rounded-lg overflow-hidden">
-                            {singleReceipt?.pdf ? (
+                            {singleReceipt?.pdf?.data ? (
                                 <Document
                                     file={`data:application/pdf;base64,${singleReceipt.pdf.data}`}
                                     onLoadSuccess={() => console.log('PDF loaded successfully')}
-                                    onLoadError={() => console.error('Error loading PDF')}
+                                    onLoadError={(error) => console.error('Error loading PDF:', error)}
                                 >
                                     <Page pageNumber={1} />
                                 </Document>
                             ) : (
-                                <p className="text-gray-600">No receipt data available</p>
+                                <iframe
+                                    src={`data:application/pdf;base64,${singleReceipt?.pdf?.data}`}
+                                    style={{ width: '100%', height: '500px', border: 'none' }}
+                                    title="Receipt PDF"
+                                />
                             )}
                         </div>
                     </div>

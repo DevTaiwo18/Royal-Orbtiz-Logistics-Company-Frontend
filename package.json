@@ -19,11 +19,13 @@
     "@mui/material": "^5.16.4",
     "@react-pdf/renderer": "^3.4.4",
     "axios": "^1.7.2",
+    "pdfjs-dist": "^4.5.136",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-icons": "^5.2.1",
     "react-modal": "^3.16.1",
     "react-number-format": "^5.4.0",
+    "react-pdf": "^9.1.0",
     "react-router-dom": "^6.25.1",
     "react-toastify": "^10.0.5"
   },

@@ -55,6 +55,7 @@ export const CustomerProvider = ({ children }) => {
       axios.get(`${API_URL}/customers`, { params: { phone: phoneNumber } })
     );
     setCustomerByPhone(response.data);
+    return response.data;
   }, [apiRequest]);
 
   // Add new customer

@@ -1,104 +1,102 @@
-import React, { useState, useEffect } from 'react';
-import { useShipments } from '../../../context/ShipmentContext';
-import { useCustomers } from '../../../context/CustomerContext';
-import 'tailwindcss/tailwind.css';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-// Helper function to format price with commas
-const formatNumberWithCommas = (value) => {
-  return value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-};
-
-// Helper function to format price
-const formatPrice = (amount) => {
-  if (!amount) return '₦0.00';
-  return new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: 'NGN'
-  }).format(amount);
-};
+import { useCustomers } from '../../../context/CustomerContext';
+import { usePrices } from '../../../context/PriceContext';
+import { useShipments } from '../../../context/ShipmentContext'; // Import ShipmentContext
 
 const Shipment = () => {
-  const { shipments, createShipment, fetchShipments } = useShipments();
-  const { customers } = useCustomers();
-  const [formData, setFormData] = useState({
-    sender: '',
-    receiverName: '',
-    receiverAddress: '',
-    receiverPhone: '',
-    description: '',
-    deliveryType: '',
-    originState: '',
-    destinationState: '',
-    price: '',
-    paymentMethod: '',
-    amountPaid: ''
-  });
-  const [senderDetails, setSenderDetails] = useState(null);
-  const [isFormVisible, setIsFormVisible] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0); 
+  const [senderPhoneNumber, setSenderPhoneNumber] = useState('');
+  const [senderName, setSenderName] = useState('');
+  const [receiverName, setReceiverName] = useState('');
+  const [receiverAddress, setReceiverAddress] = useState('');
+  const [receiverPhone, setReceiverPhone] = useState('');
+  const [description, setDescription] = useState('');
+  const [deliveryType, setDeliveryType] = useState('hubToHub');
+  const [originState, setOriginState] = useState('');
+  const [destinationState, setDestinationState] = useState('');
+  const [weight, setWeight] = useState('');
+  const [name, setName] = useState(''); // Updated from `category` to `name`
+  const [insurance, setInsurance] = useState(false);
+  const [totalPrice, setTotalPrice] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState('cash'); // Default value
+  const [amountPaid, setAmountPaid] = useState('');
+  const [loading, setLoading] = useState(false); // Add loading state
 
   const navigate = useNavigate();
+  const { fetchCustomerByPhone } = useCustomers();
+  const { calculatePrice } = usePrices();
+  const { createShipment } = useShipments(); // Get the createShipment function from context
 
-  useEffect(() => {
-    const selectedSender = customers.find(customer => customer._id === formData.sender);
-    setSenderDetails(selectedSender || null);
-  }, [formData.sender, customers]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
+  const handlePhoneNumberBlur = async () => {
+    if (senderPhoneNumber) {
       try {
-        await fetchShipments(); 
+        const customers = await fetchCustomerByPhone(senderPhoneNumber);
+        if (customers.length > 0) {
+          const { name } = customers[0];
+          setSenderName(name);
+        } else {
+          setSenderName('');
+          navigate('/dashboard/customer');
+        }
       } catch (error) {
-        console.error('Error fetching shipments:', error);
-      } finally {
-        setLoading(false);
+        console.error('Error fetching customer:', error);
+        setSenderName('');
+        navigate('/dashboard/customer');
       }
-    };
-    fetchData();
-  }, [refreshKey]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    // Format the value if it's price or amountPaid
-    if (name === 'price' || name === 'amountPaid') {
-      const formattedValue = formatNumberWithCommas(value.replace(/,/g, ''));
-      setFormData(prev => ({ ...prev, [name]: formattedValue }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleCalculatePrice = async () => {
     setLoading(true);
+    const shipmentDetails = {
+      deliveryType,
+      originState,
+      destinationState,
+      weight: parseFloat(weight),
+      name, // Updated from `category` to `name`
+      insurance
+    };
+
     try {
-      // Remove commas before sending data to backend
-      const formattedData = {
-        ...formData,
-        price: formData.price.replace(/,/g, ''),
-        amountPaid: formData.amountPaid.replace(/,/g, '')
-      };
-      await createShipment(formattedData);
-      setFormData({
-        sender: '',
-        receiverName: '',
-        receiverAddress: '',
-        receiverPhone: '',
-        description: '',
-        deliveryType: '',
-        originState: '',
-        destinationState: '',
-        price: '',
-        paymentMethod: '',
-        amountPaid: ''
-      });
-      setIsFormVisible(false);
-      setRefreshKey(prev => prev + 1); 
+      const price = await calculatePrice(shipmentDetails);
+      console.log(price);
+
+      setTotalPrice(price);
+    } catch (error) {
+      console.error('Error calculating price:', error);
+      setTotalPrice(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    const shipmentDetails = {
+      senderName,
+      senderPhoneNumber,
+      receiverName,
+      receiverAddress,
+      receiverPhone,
+      description,
+      deliveryType,
+      originState,
+      destinationState,
+      weight: parseFloat(weight),
+      name, // Updated from `category` to `name`
+      insurance,
+      totalPrice,
+      paymentMethod,
+      amountPaid: parseFloat(amountPaid)
+    };
+
+    console.log(shipmentDetails);
+    
+
+    try {
+      const createdShipment = await createShipment(shipmentDetails);
+      
+      navigate(`/dashboard/shipment/${createdShipment._id}`);
     } catch (error) {
       console.error('Error creating shipment:', error);
     } finally {
@@ -106,300 +104,247 @@ const Shipment = () => {
     }
   };
 
-  const filteredShipments = shipments.filter(shipment => {
-    const senderName = shipment.senderName?.toLowerCase() || '';
-    const receiverName = shipment.receiverName?.toLowerCase() || '';
-    const waybillNumber = shipment.waybillNumber?.toLowerCase() || '';
-
-    const searchTermLower = searchTerm.toLowerCase();
-
-    return senderName.includes(searchTermLower) ||
-      receiverName.includes(searchTermLower) ||
-      waybillNumber.includes(searchTermLower);
-  });
-
-  const handleView = (id) => {
-    navigate(`/dashboard/shipment/${id}`);
+  const formatCurrency = (amount) => {
+    if (amount == null) return 'N/A';
+    return `₦${amount.toLocaleString()}`;
   };
 
+  // Sample names
+  const names = [
+    'Document',
+    'Cargo',
+    'Parcel',
+  ];
+
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <div className="bg-white p-6 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold mb-6">Shipments</h1>
-
-        <div className="flex justify-between items-center mb-6">
-          <input
-            className="p-2 outline-none text-sm border border-gray-300 rounded-lg w-full max-w-md"
-            type="text"
-            placeholder="Search shipments"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <div className="flex space-x-4">
-            <button
-              className="bg-purple-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-purple-700"
-              onClick={() => setIsFormVisible(prev => !prev)}
-            >
-              {isFormVisible ? 'Cancel' : 'Create Shipment'}
-            </button>
-          </div>
-        </div>
-
-        {loading && (
-          <div className="text-center">
-            <div role="status">
-              <svg
-                aria-hidden="true"
-                className="inline w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
-                viewBox="0 0 100 101"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-                  fill="currentColor"
-                />
-                <path
-                  d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-                  fill="currentFill"
-                />
-              </svg>
-              <span className="sr-only">Loading...</span>
+    <div className="p-6 bg-white shadow-2xl min-h-screen">
+      <h1 className="text-3xl font-bold mb-8 text-gray-800">Shipment Details</h1>
+      <form className="space-y-8 bg-white p-6 rounded-lg">
+        {/* Sender and Receiver Information */}
+        <div className="flex gap-8 mb-8">
+          {/* Sender Information */}
+          <div className="flex-1 p-6 bg-gray-50 border border-gray-300 rounded-lg">
+            <h2 className="text-2xl font-semibold mb-4 text-gray-700">Sender Information</h2>
+            <div className="mb-4">
+              <label htmlFor="senderPhoneNumber" className="block text-gray-600 text-lg font-semibold">Sender Phone Number</label>
+              <input
+                type="text"
+                id="senderPhoneNumber"
+                value={senderPhoneNumber}
+                onChange={(e) => setSenderPhoneNumber(e.target.value)}
+                onBlur={handlePhoneNumberBlur}
+                placeholder="Enter phone number"
+                className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor="senderName" className="block text-gray-600 text-lg font-semibold">Sender Name</label>
+              <input
+                type="text"
+                id="senderName"
+                value={senderName}
+                onChange={(e) => setSenderName(e.target.value)}
+                placeholder="Sender's Name"
+                className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
+                readOnly
+              />
             </div>
           </div>
-        )}
 
-        {isFormVisible && !loading && (
-          <div className="bg-white p-6 rounded-lg ">
-            <h2 className="text-lg font-semibold mb-6">Add New Shipment</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-gray-700 text-sm mb-2" htmlFor="sender">
-                    Sender:
-                  </label>
-                  <select
-                    id="sender"
-                    name="sender"
-                    value={formData.sender}
-                    onChange={handleChange}
-                    className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-                    required
-                  >
-                    <option value="">Select Sender</option>
-                    {customers.map(customer => (
-                      <option key={customer._id} value={customer._id}>
-                        {customer.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+          {/* Receiver Information */}
+          <div className="flex-1 p-6 bg-gray-50 border border-gray-300 rounded-lg">
+            <h2 className="text-2xl font-semibold mb-4 text-gray-700">Receiver Information</h2>
+            <div className="mb-4">
+              <label htmlFor="receiverName" className="block text-gray-600 text-lg font-semibold">Receiver Name</label>
+              <input
+                type="text"
+                id="receiverName"
+                value={receiverName}
+                onChange={(e) => setReceiverName(e.target.value)}
+                placeholder="Receiver's Name"
+                className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor="receiverAddress" className="block text-gray-600 text-lg font-semibold">Receiver Address</label>
+              <input
+                type="text"
+                id="receiverAddress"
+                value={receiverAddress}
+                onChange={(e) => setReceiverAddress(e.target.value)}
+                placeholder="Receiver's Address"
+                className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
+              />
+            </div>
+            <div className="mb-4">
+              <label htmlFor="receiverPhone" className="block text-gray-600 text-lg font-semibold">Receiver Phone Number</label>
+              <input
+                type="text"
+                id="receiverPhone"
+                value={receiverPhone}
+                onChange={(e) => setReceiverPhone(e.target.value)}
+                placeholder="Receiver's Phone Number"
+                className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
+              />
+            </div>
+          </div>
+        </div>
 
-                <div>
-                  <label className="block text-gray-700 text-sm mb-2" htmlFor="receiverName">
-                    Receiver Name:
-                  </label>
-                  <input
-                    type="text"
-                    id="receiverName"
-                    name="receiverName"
-                    value={formData.receiverName}
-                    onChange={handleChange}
-                    className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-                    required
-                  />
-                </div>
+        {/* Shipment Details */}
+        <div className="mb-4">
+          <label htmlFor="description" className="block text-gray-600 text-lg font-semibold">Description</label>
+          <textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Description of the shipment"
+            className="mt-1 p-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100 uppercase"
+            rows="4"
+          />
+        </div>
 
-                <div>
-                  <label className="block text-gray-700 text-sm mb-2" htmlFor="receiverAddress">
-                    Receiver Address:
-                  </label>
-                  <input
-                    type="text"
-                    id="receiverAddress"
-                    name="receiverAddress"
-                    value={formData.receiverAddress}
-                    onChange={handleChange}
-                    className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-                    required
-                  />
-                </div>
+        <div className="mb-4">
+          <label htmlFor="deliveryType" className="block text-gray-600 text-lg font-semibold">Delivery Type</label>
+          <select
+            id="deliveryType"
+            value={deliveryType}
+            onChange={(e) => setDeliveryType(e.target.value)}
+            className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
+          >
+            <option value="hubToHub">Hub to Hub</option>
+            <option value="officeToHub">Office to Hub</option>
+          </select>
+        </div>
 
-                <div>
-                  <label className="block text-gray-700 text-sm mb-2" htmlFor="receiverPhone">
-                    Receiver Phone:
-                  </label>
-                  <input
-                    type="text"
-                    id="receiverPhone"
-                    name="receiverPhone"
-                    value={formData.receiverPhone}
-                    onChange={handleChange}
-                    className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-                    required
-                  />
-                </div>
+        <div className="mb-4">
+          <label htmlFor="originState" className="block text-gray-600 text-lg font-semibold">Origin State</label>
+          <input
+            type="text"
+            id="originState"
+            value={originState}
+            onChange={(e) => setOriginState(e.target.value)}
+            placeholder="Origin State"
+            className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
+          />
+        </div>
 
-                <div>
-                  <label className="block text-gray-700 text-sm mb-2" htmlFor="description">
-                    Description:
-                  </label>
-                  <input
-                    type="text"
-                    id="description"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-                    required
-                  />
-                </div>
+        <div className="mb-4">
+          <label htmlFor="destinationState" className="block text-gray-600 text-lg font-semibold">Destination State</label>
+          <input
+            type="text"
+            id="destinationState"
+            value={destinationState}
+            onChange={(e) => setDestinationState(e.target.value)}
+            placeholder="Destination State"
+            className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
+          />
+        </div>
 
-                <div>
-                  <label className="block text-gray-700 text-sm mb-2" htmlFor="deliveryType">
-                    Delivery Type:
-                  </label>
-                  <select
-                    id="deliveryType"
-                    name="deliveryType"
-                    value={formData.deliveryType}
-                    onChange={handleChange}
-                    className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-                    required
-                  >
-                    <option value="">Select Delivery Type</option>
-                    <option value="Home Delivery">Home</option>
-                    <option value="Office Pickup">Office</option>
-                  </select>
-                </div>
+        <div className="mb-4">
+          <label htmlFor="weight" className="block text-gray-600 text-lg font-semibold">Weight</label>
+          <input
+            type="number"
+            id="weight"
+            value={weight}
+            onChange={(e) => setWeight(e.target.value)}
+            placeholder="Weight"
+            className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
+          />
+        </div>
 
-                <div>
-                  <label className="block text-gray-700 text-sm mb-2" htmlFor="originState">
-                    Origin State:
-                  </label>
-                  <input
-                    type="text"
-                    id="originState"
-                    name="originState"
-                    value={formData.originState}
-                    onChange={handleChange}
-                    className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-                    required
-                  />
-                </div>
+        <div className="mb-4">
+          <label htmlFor="name" className="block text-gray-600 text-lg font-semibold">Name</label>
+          <select
+            id="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
+          >
+            <option value="" disabled>Select Name</option>
+            {names.map((nameOption) => (
+              <option key={nameOption} value={nameOption}>{nameOption}</option>
+            ))}
+          </select>
+        </div>
 
-                <div>
-                  <label className="block text-gray-700 text-sm mb-2" htmlFor="destinationState">
-                    Destination State:
-                  </label>
-                  <input
-                    type="text"
-                    id="destinationState"
-                    name="destinationState"
-                    value={formData.destinationState}
-                    onChange={handleChange}
-                    className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-                    required
-                  />
-                </div>
+        <div className="mb-4">
+          <label htmlFor="insurance" className="flex items-center text-gray-600 text-lg font-semibold">
+            <input
+              type="checkbox"
+              id="insurance"
+              checked={insurance}
+              onChange={() => setInsurance(!insurance)}
+              className="mr-2"
+            />
+            Insurance
+          </label>
+        </div>
 
-                <div>
-                  <label className="block text-gray-700 text-sm mb-2" htmlFor="price">
-                    Price (₦):
-                  </label>
-                  <input
-                    type="text"
-                    id="price"
-                    name="price"
-                    value={formData.price}
-                    onChange={handleChange}
-                    className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-                    required
-                  />
-                </div>
+        <div className="flex items-center mb-4">
+          <button
+            type="button"
+            onClick={handleCalculatePrice}
+            className="bg-yellow-500 text-white py-2 px-4 rounded-lg shadow hover:bg-yellow-600 focus:outline-none"
+          >
+            {loading ? 'Calculating...' : 'Calculate Price'}
+          </button>
+        </div>
 
-                <div>
-                  <label className="block text-gray-700 text-sm mb-2" htmlFor="paymentMethod">
-                    Payment Method:
-                  </label>
-                  <select
-                    id="paymentMethod"
-                    name="paymentMethod"
-                    value={formData.paymentMethod}
-                    onChange={handleChange}
-                    className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-                    required
-                  >
-                    <option value="">Select Payment Method</option>
-                    <option value="cash">Cash</option>
-                    <option value="transfer">Transfer</option>
-                  </select>
-                </div>
+        <div className="mt-8">
+          <label htmlFor="totalPrice" className="block text-gray-600 text-lg font-semibold">Total Price</label>
+          <input
+            type="text"
+            id="totalPrice"
+            value={formatCurrency(totalPrice)}
+            placeholder="Total Price"
+            className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none bg-gray-100 cursor-not-allowed"
+            readOnly
+          />
+        </div>
 
-                <div>
-                  <label className="block text-gray-700 text-sm mb-2" htmlFor="amountPaid">
-                    Amount Paid (₦):
-                  </label>
-                  <input
-                    type="text"
-                    id="amountPaid"
-                    name="amountPaid"
-                    value={formData.amountPaid}
-                    onChange={handleChange}
-                    className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-                    required
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className="bg-purple-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-purple-700"
-                disabled={loading}
-              >
-                {loading ? 'Submitting...' : 'Submit'}
-              </button>
-            </form>
+        {totalPrice != null && (
+          <div className="mb-4">
+            <label htmlFor="paymentMethod" className="block text-gray-600 text-lg font-semibold">Payment Method</label>
+            <select
+              id="paymentMethod"
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+              className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
+            >
+              <option value="cash">Cash</option>
+              <option value="transfer">Transfer</option>
+            </select>
           </div>
         )}
 
-        <div className="mt-6">
-          <h2 className="text-lg font-semibold mb-4">Shipment List</h2>
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr className=''>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Waybill Number</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Sender</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Receiver Name</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Amount Paid</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredShipments.map(shipment => (
-                <tr key={shipment._id} className='text-center'>
-                  <td className="font-semibold text-xs px-4 border-b border-gray-300">{shipment.waybillNumber}</td>
-                  <td className="font-semibold text-xs px-4 border-b border-gray-300">{shipment.senderName}</td>
-                  <td className=" font-semibold text-xs px-4 border-b border-gray-300">{shipment.receiverName}</td>
-                  <td className=" font-semibold text-xs px-4 border-b border-gray-300">{shipment.status}</td>
-                  <td className="font-semibold text-xs px-4 border-b border-gray-300">{formatPrice(shipment.price)}</td>
-                  <td className="font-semibold text-xs px-4 border-b border-gray-300">{formatPrice(shipment.amountPaid)}</td>
-                  <td className="py-3 px-4 border-b border-gray-300">
-                    <button
-                      onClick={() => handleView(shipment._id)}
-                      className="bg-purple-500 text-white py-1 px-3 text-xs font-bold rounded-lg hover:bg-purple-600"
-                    >
-                      View
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+        {totalPrice != null && (
+          <div className="mb-4">
+            <label htmlFor="amountPaid" className="block text-gray-600 text-lg font-semibold">Amount Paid</label>
+            <input
+              type="number"
+              id="amountPaid"
+              value={amountPaid}
+              onChange={(e) => setAmountPaid(e.target.value)}
+              placeholder="Amount Paid"
+              className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
+            />
+          </div>
+        )}
+
+        {totalPrice != null && (
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className="bg-blue-500 text-white py-2 px-4 rounded-lg shadow hover:bg-blue-600 focus:outline-none"
+              disabled={loading}
+            >
+              {loading ? 'Submitting...' : 'Submit'}
+            </button>
+          </div>
+        )}
+
+      </form>
     </div>
   );
 };

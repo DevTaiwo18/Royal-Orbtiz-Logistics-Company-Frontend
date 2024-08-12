@@ -56,7 +56,7 @@ export const ReceiptsProvider = ({ children }) => {
         setError(null);
         try {
             const response = await axios.get(`/receipts/waybill/${waybillNumber}`);
-            setSingleReceipt(response.data); // Set single receipt separately
+            setSingleReceipt(response.data.pdf.data.data); // Set single receipt separately
         } catch (err) {
             setError(err.response ? err.response.data.message : err.message);
         } finally {
