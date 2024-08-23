@@ -40,6 +40,7 @@ export const ShipmentProvider = ({ children }) => {
         try {
             const response = await axios.post(`${API_URL}/shipments/`, shipment);
             setShipments(prevShipments => [...prevShipments, response.data]);
+            return response.data;
         } catch (err) {
             setError(err.message);
         }

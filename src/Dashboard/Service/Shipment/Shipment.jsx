@@ -30,9 +30,9 @@ const Shipment = () => {
   const handlePhoneNumberBlur = async () => {
     if (senderPhoneNumber) {
       try {
-        const customers = await fetchCustomerByPhone(senderPhoneNumber);
-        if (customers.length > 0) {
-          const { name } = customers[0];
+        const customer = await fetchCustomerByPhone(senderPhoneNumber);
+        if (customer) {
+          const { name } = customer;
           setSenderName(name);
         } else {
           setSenderName('');
@@ -91,12 +91,14 @@ const Shipment = () => {
     };
 
     console.log(shipmentDetails);
-    
+
 
     try {
       const createdShipment = await createShipment(shipmentDetails);
-      
-      navigate(`/dashboard/shipment/${createdShipment._id}`);
+      console.log(createdShipment);
+      if (createdShipment) {
+        navigate(`/dashboard/shipment/${createdShipment.shipment._id}`);
+      }
     } catch (error) {
       console.error('Error creating shipment:', error);
     } finally {

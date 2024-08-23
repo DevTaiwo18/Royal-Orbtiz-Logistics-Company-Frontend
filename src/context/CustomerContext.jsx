@@ -52,9 +52,11 @@ export const CustomerProvider = ({ children }) => {
   // Fetch customer by phone number
   const fetchCustomerByPhone = useCallback(async (phoneNumber) => {
     const response = await apiRequest(() =>
-      axios.get(`${API_URL}/customers`, { params: { phone: phoneNumber } })
+      axios.get(`${API_URL}/customers/phone/${phoneNumber}`)
     );
     setCustomerByPhone(response.data);
+    console.log(response.data);
+    
     return response.data;
   }, [apiRequest]);
 

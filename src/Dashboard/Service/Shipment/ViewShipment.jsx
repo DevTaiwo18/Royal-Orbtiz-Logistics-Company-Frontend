@@ -13,9 +13,6 @@ const ViewShipment = () => {
     navigate(`/dashboard/shipment/${shipmentId}`);
   };
 
-  console.log(shipments);
-  
-
   const handleStatusChange = (shipmentId, status) => {
     setEditingId(shipmentId);
     setNewStatus(status);

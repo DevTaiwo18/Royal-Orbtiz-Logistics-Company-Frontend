@@ -1,87 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { useReceipts } from '../../../context/ReceiptsContext';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useShipments } from '../../../context/ShipmentContext';
-import { Document, Page, pdfjs } from 'react-pdf';
-
-// Set up the PDF worker
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js`;
+import { FaEdit, FaTrash, FaArrowLeft } from 'react-icons/fa';
 
 const DisplayShipment = () => {
     const { id } = useParams();
     const { fetchShipmentById, error: shipmentError } = useShipments();
-    const { fetchReceiptByWaybillNumber, error: receiptError, singleReceipt } = useReceipts();
     const [shipment, setShipment] = useState(null);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
+    
+    const getShipment = async () => {
+        setLoading(true);
+        try {
+            const shipmentData = await fetchShipmentById(id);
+            setShipment(shipmentData);
+        } catch (err) {
+            console.error('Error fetching shipment data:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const getShipmentAndReceipt = async () => {
-            setLoading(true);
-            try {
-                const shipmentData = await fetchShipmentById(id);
-                setShipment(shipmentData);
+        getShipment();
+    }, [id, fetchShipmentById]);
 
-                if (shipmentData?.waybillNumber) {
-                    await fetchReceiptByWaybillNumber(shipmentData.waybillNumber);
-                }
-            } catch (err) {
-                console.error('Error fetching data:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        getShipmentAndReceipt();
-    }, [id, fetchShipmentById, fetchReceiptByWaybillNumber]);
-
-    useEffect(() => {
-        if (shipment?.waybillNumber && singleReceipt?.waybillNumber !== shipment.waybillNumber) {
-            fetchReceiptByWaybillNumber(shipment.waybillNumber);
-        }
-    }, [shipment?.waybillNumber, singleReceipt?.waybillNumber, fetchReceiptByWaybillNumber]);
-
-    const handlePrint = () => {
-        if (!singleReceipt?.pdf?.data) {
-            console.error('No receipt data available for printing.');
-            return;
-        }
-
-        const printWindow = window.open('', '_blank');
-        if (!printWindow) {
-            console.error('Failed to open print window.');
-            return;
-        }
-
-        const pdfData = singleReceipt.pdf.data;
-        const pdfUrl = `data:application/pdf;base64,${pdfData}`;
-
-        printWindow.document.open();
-        printWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Print Receipt</title>
-                <style>
-                    body { margin: 0; }
-                    iframe { width: 100%; height: 100vh; border: none; }
-                </style>
-            </head>
-            <body>
-                <iframe src="${pdfUrl}"></iframe>
-                <script>
-                    window.onload = function() {
-                        setTimeout(() => {
-                            window.print();
-                            window.onafterprint = function() {
-                                window.close();
-                            };
-                        }, 500);
-                    };
-                </script>
-            </body>
-            </html>
-        `);
-        printWindow.document.close();
+    const handleBack = () => {
+        navigate('/dashboard/viewshipment'); 
+        window.location.reload();
+        // Navigate back to the shipment list page
     };
 
     // Format currency with ₦
@@ -91,16 +39,23 @@ const DisplayShipment = () => {
 
     if (loading) return <p className="text-center text-gray-600">Loading...</p>;
     if (shipmentError) return <p className="text-center text-red-600">Shipment Error: {shipmentError}</p>;
-    if (receiptError) return <p className="text-center text-red-600">Receipt Error: {receiptError}</p>;
     if (!shipment) return <p className="text-center text-gray-600">Shipment not found</p>;
-    if (!singleReceipt) return <p className="text-center text-gray-600">Receipt not found</p>;
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen flex items-center justify-center">
-            <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-4xl">
+        <div className="p-3 bg-gray-50 flex items-center justify-center">
+
+            <div className="bg-white p-8 rounded-lg shadow-lg w-full">
+
+                <div className="mb-6">
+                    <button
+                        onClick={handleBack}
+                        className="px-4 py-2 bg-gray-300 text-gray-700 font-semibold rounded-md shadow-md hover:bg-gray-400 flex items-center transition duration-300 ease-in-out"
+                    >
+                        <FaArrowLeft className="mr-2" /> Back
+                    </button>
+                </div>
                 <h1 className="text-3xl font-bold mb-6 text-gray-800">Shipment Details</h1>
                 <div className="space-y-6">
-                    {/* Shipment Details */}
                     {[
                         { label: 'Waybill Number', value: shipment.waybillNumber },
                         { label: 'Sender Name', value: shipment.senderName },
@@ -119,38 +74,6 @@ const DisplayShipment = () => {
                             <span className="text-gray-800 font-bold">{item.value}</span>
                         </div>
                     ))}
-
-                    {/* Receipt Display */}
-                    <div className="mt-6">
-                        <h2 className="text-2xl font-bold mb-4 text-gray-800">Receipt</h2>
-                        <div className="border border-gray-300 rounded-lg overflow-hidden">
-                            {singleReceipt?.pdf?.data ? (
-                                <Document
-                                    file={`data:application/pdf;base64,${singleReceipt.pdf.data}`}
-                                    onLoadSuccess={() => console.log('PDF loaded successfully')}
-                                    onLoadError={(error) => console.error('Error loading PDF:', error)}
-                                >
-                                    <Page pageNumber={1} />
-                                </Document>
-                            ) : (
-                                <iframe
-                                    src={`data:application/pdf;base64,${singleReceipt?.pdf?.data}`}
-                                    style={{ width: '100%', height: '500px', border: 'none' }}
-                                    title="Receipt PDF"
-                                />
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Print Button */}
-                    <div className="mt-6 flex justify-center">
-                        <button
-                            onClick={handlePrint}
-                            className="bg-blue-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 focus:outline-none"
-                        >
-                            Print Receipt
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>
