@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCustomers } from '../../../context/CustomerContext';
 import { usePrices } from '../../../context/PriceContext';
 import { useShipments } from '../../../context/ShipmentContext'; // Import ShipmentContext
+import { useBranch } from '../../../context/BranchContext';
 
 const Shipment = () => {
   const [senderPhoneNumber, setSenderPhoneNumber] = useState('');
@@ -15,17 +16,41 @@ const Shipment = () => {
   const [originState, setOriginState] = useState('');
   const [destinationState, setDestinationState] = useState('');
   const [weight, setWeight] = useState('');
-  const [name, setName] = useState(''); // Updated from `category` to `name`
+  const [name, setName] = useState(''); // Updated from category to name
   const [insurance, setInsurance] = useState(false);
   const [totalPrice, setTotalPrice] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('cash'); // Default value
   const [amountPaid, setAmountPaid] = useState('');
   const [loading, setLoading] = useState(false); // Add loading state
+  const [customerNotFound, setCustomerNotFound] = useState(false);
 
   const navigate = useNavigate();
   const { fetchCustomerByPhone } = useCustomers();
-  const { calculatePrice } = usePrices();
+  const { calculatePrice, names } = usePrices(); // Get names from context
   const { createShipment } = useShipments(); // Get the createShipment function from context
+  const { fetchAllBranches } = useBranch();
+  const [branches, setBranches] = useState([]);
+  const [BranchName, setBranch] = useState('');
+
+  useEffect(() => {
+    if (totalPrice !== null) {
+      setAmountPaid(totalPrice);
+    }
+  }, [totalPrice]);
+
+
+  useEffect(() => {
+    const loadBranches = async () => {
+      try {
+        const allBranches = await fetchAllBranches();
+        setBranches(allBranches);
+      } catch (error) {
+        console.error('Error fetching branches:', error);
+      }
+    };
+
+    loadBranches();
+  }, []);
 
   const handlePhoneNumberBlur = async () => {
     if (senderPhoneNumber) {
@@ -34,14 +59,15 @@ const Shipment = () => {
         if (customer) {
           const { name } = customer;
           setSenderName(name);
+          setCustomerNotFound(false); // Reset if customer is found
         } else {
           setSenderName('');
-          navigate('/dashboard/customer');
+          setCustomerNotFound(true); // Show the error message
         }
       } catch (error) {
         console.error('Error fetching customer:', error);
         setSenderName('');
-        navigate('/dashboard/customer');
+        setCustomerNotFound(true); // Show the error message
       }
     }
   };
@@ -53,14 +79,13 @@ const Shipment = () => {
       originState,
       destinationState,
       weight: parseFloat(weight),
-      name, // Updated from `category` to `name`
+      name, // Updated from category to name
       insurance
     };
 
     try {
       const price = await calculatePrice(shipmentDetails);
       console.log(price);
-
       setTotalPrice(price);
     } catch (error) {
       console.error('Error calculating price:', error);
@@ -83,15 +108,15 @@ const Shipment = () => {
       originState,
       destinationState,
       weight: parseFloat(weight),
-      name, // Updated from `category` to `name`
+      name, // Updated from category to name
       insurance,
       totalPrice,
       paymentMethod,
-      amountPaid: parseFloat(amountPaid)
+      amountPaid: parseFloat(amountPaid),
+      BranchName
     };
 
     console.log(shipmentDetails);
-
 
     try {
       const createdShipment = await createShipment(shipmentDetails);
@@ -110,13 +135,6 @@ const Shipment = () => {
     if (amount == null) return 'N/A';
     return `₦${amount.toLocaleString()}`;
   };
-
-  // Sample names
-  const names = [
-    'Document',
-    'Cargo',
-    'Parcel',
-  ];
 
   return (
     <div className="p-6 bg-white shadow-2xl min-h-screen">
@@ -138,7 +156,11 @@ const Shipment = () => {
                 placeholder="Enter phone number"
                 className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
               />
+              {customerNotFound && (
+                <p className="text-red-500 mt-2">No customer found. Please add them first.</p>
+              )}
             </div>
+
             <div className="mb-4">
               <label htmlFor="senderName" className="block text-gray-600 text-lg font-semibold">Sender Name</label>
               <input
@@ -214,141 +236,154 @@ const Shipment = () => {
             className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
           >
             <option value="hubToHub">Hub to Hub</option>
-            <option value="officeToHub">Office to Hub</option>
+            <option value="homeDelivery">Home Delivery</option>
+            <option value="officePickup">Office Pickup</option>
           </select>
         </div>
 
-        <div className="mb-4">
-          <label htmlFor="originState" className="block text-gray-600 text-lg font-semibold">Origin State</label>
-          <input
-            type="text"
-            id="originState"
-            value={originState}
-            onChange={(e) => setOriginState(e.target.value)}
-            placeholder="Origin State"
-            className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
-          />
+        <div className="flex gap-8 mb-8">
+          {/* Origin State */}
+          <div className="flex-1 mb-4">
+            <label htmlFor="originState" className="block text-gray-600 text-lg font-semibold">Origin State</label>
+            <input
+              type="text"
+              id="originState"
+              value={originState}
+              onChange={(e) => setOriginState(e.target.value)}
+              placeholder="Origin State"
+              className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
+            />
+          </div>
+
+          {/* Destination State */}
+          <div className="flex-1 mb-4">
+            <label htmlFor="destinationState" className="block text-gray-600 text-lg font-semibold">Destination State</label>
+            <input
+              type="text"
+              id="destinationState"
+              value={destinationState}
+              onChange={(e) => setDestinationState(e.target.value)}
+              placeholder="Destination State"
+              className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-8 mb-8">
+          {/* Weight */}
+          <div className="flex-1 mb-4">
+            <label htmlFor="weight" className="block text-gray-600 text-lg font-semibold">Weight (kg)</label>
+            <input
+              type="number"
+              id="weight"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+              placeholder="Weight in kilograms"
+              className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
+            />
+          </div>
+
+          {/* Name (Category) */}
+          <div className="flex-1 mb-4">
+            <label htmlFor="name" className="block text-gray-600 text-lg font-semibold">Category</label>
+            <select
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
+            >
+              <option value="">Select Category</option>
+              {names.map((name, index) => (
+                <option key={index} value={name}>{name}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="mb-4">
-          <label htmlFor="destinationState" className="block text-gray-600 text-lg font-semibold">Destination State</label>
-          <input
-            type="text"
-            id="destinationState"
-            value={destinationState}
-            onChange={(e) => setDestinationState(e.target.value)}
-            placeholder="Destination State"
-            className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label htmlFor="weight" className="block text-gray-600 text-lg font-semibold">Weight</label>
-          <input
-            type="number"
-            id="weight"
-            value={weight}
-            onChange={(e) => setWeight(e.target.value)}
-            placeholder="Weight"
-            className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label htmlFor="name" className="block text-gray-600 text-lg font-semibold">Name</label>
-          <select
-            id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
-          >
-            <option value="" disabled>Select Name</option>
-            {names.map((nameOption) => (
-              <option key={nameOption} value={nameOption}>{nameOption}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="mb-4">
-          <label htmlFor="insurance" className="flex items-center text-gray-600 text-lg font-semibold">
+          <label htmlFor="insurance" className="inline-flex items-center text-gray-600 text-lg font-semibold">
             <input
               type="checkbox"
               id="insurance"
               checked={insurance}
               onChange={() => setInsurance(!insurance)}
-              className="mr-2"
+              className="form-checkbox"
             />
-            Insurance
+            <span className="ml-2">Include Insurance</span>
           </label>
         </div>
 
-        <div className="flex items-center mb-4">
+        <div className="mb-4">
           <button
             type="button"
             onClick={handleCalculatePrice}
-            className="bg-yellow-500 text-white py-2 px-4 rounded-lg shadow hover:bg-yellow-600 focus:outline-none"
+            className={`px-4 py-2 text-white font-semibold rounded-lg ${loading ? 'bg-gray-400' : 'bg-yellow-600 hover:bg-yellow-700'} focus:outline-none`}
+            disabled={loading}
           >
-            {loading ? 'Calculating...' : 'Calculate Price'}
+            {loading ? 'Calculating Price...' : 'Calculate Price'}
           </button>
         </div>
 
-        <div className="mt-8">
-          <label htmlFor="totalPrice" className="block text-gray-600 text-lg font-semibold">Total Price</label>
+        <div className="flex justify-between mb-2">
+          <span className="text-gray-600 text-lg font-semibold">Total Price:</span>
+          <span className="text-gray-800 text-lg font-semibold">{formatCurrency(totalPrice)}</span>
+        </div>
+
+        {/* Amount Paid */}
+        <div className="mb-4">
+          <label htmlFor="amountPaid" className="block text-gray-600 text-lg font-semibold">Amount Paid</label>
           <input
             type="text"
-            id="totalPrice"
-            value={formatCurrency(totalPrice)}
-            placeholder="Total Price"
-            className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none bg-gray-100 cursor-not-allowed"
+            id="amountPaid"
+            value={amountPaid}
             readOnly
+            className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none bg-gray-200"
           />
         </div>
 
-        {totalPrice != null && (
-          <div className="mb-4">
-            <label htmlFor="paymentMethod" className="block text-gray-600 text-lg font-semibold">Payment Method</label>
-            <select
-              id="paymentMethod"
-              value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
-              className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
-            >
-              <option value="cash">Cash</option>
-              <option value="transfer">Transfer</option>
-            </select>
-          </div>
-        )}
+        {/* Payment Method */}
+        <div className="mb-4">
+          <label htmlFor="paymentMethod" className="block text-gray-600 text-lg font-semibold">Payment Method</label>
+          <select
+            id="paymentMethod"
+            value={paymentMethod}
+            onChange={(e) => setPaymentMethod(e.target.value)}
+            className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
+          >
+            <option value="cash">Cash</option>
+            <option value="transfer">Bank Transfer</option>
+          </select>
+        </div>
 
-        {totalPrice != null && (
-          <div className="mb-4">
-            <label htmlFor="amountPaid" className="block text-gray-600 text-lg font-semibold">Amount Paid</label>
-            <input
-              type="number"
-              id="amountPaid"
-              value={amountPaid}
-              onChange={(e) => setAmountPaid(e.target.value)}
-              placeholder="Amount Paid"
-              className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
-            />
-          </div>
-        )}
+        <div className="flex-1 mb-4">
+          <label htmlFor="branch" className="block text-gray-600 text-lg font-semibold">BranchName</label>
+          <select
+            id="branch"
+            value={BranchName}
+            onChange={(e) => setBranch(e.target.value)}
+            className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
+          >
+            <option value="">Select Branch</option>
+            {branches.map((branch) => (
+              <option key={branch._id} value={`${branch.name}`}>{branch.name}</option>
+            ))}
+          </select>
+        </div>
 
-        {totalPrice != null && (
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={handleSubmit}
-              className="bg-blue-500 text-white py-2 px-4 rounded-lg shadow hover:bg-blue-600 focus:outline-none"
-              disabled={loading}
-            >
-              {loading ? 'Submitting...' : 'Submit'}
-            </button>
-          </div>
-        )}
-
+        <div className="flex justify-between">
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className={`px-4 py-2 text-white font-semibold rounded-lg ${loading ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'} focus:outline-none`}
+            disabled={loading}
+          >
+            {loading ? 'Submitting...' : 'Submit Shipment'}
+          </button>
+        </div>
       </form>
     </div>
   );
 };
 
 export default Shipment;
+

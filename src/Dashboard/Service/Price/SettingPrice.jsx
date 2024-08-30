@@ -32,13 +32,13 @@ const SettingPrice = () => {
           charge: parseFloat(dsc.charge.replace(/,/g, ''))
         }))
       }],
-      createdBy: '669e80a5588f368cded80c20' 
+      createdBy: '669e80a5588f368cded80c20'
     };
 
     try {
 
       console.log(newPrice);
-      
+
       await addPrice(newPrice);
       // Reset form
       setCategoryName('');
@@ -64,18 +64,14 @@ const SettingPrice = () => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="categoryName" className="block text-sm font-medium text-gray-700">Category Name:</label>
-          <select
+          <input
             id="categoryName"
+            type="text"
             value={categoryName}
             onChange={(e) => setCategoryName(e.target.value)}
             required
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-custom-purple focus:border-custom-purple sm:text-sm"
-          >
-            <option value="">Select Category</option>
-            <option value="Document">Document</option>
-            <option value="Parcel">Parcel</option>
-            <option value="Cargo">Cargo</option>
-          </select>
+          />
         </div>
         <div>
           <label htmlFor="basePrice" className="block text-sm font-medium text-gray-700">Base Price:</label>

@@ -13,13 +13,18 @@ export const PriceProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [singlePrice, setSinglePrice] = useState(null); // State for single price
+  const [names, setNames] = useState([]); // State for category names
 
-  // Fetch all prices from API
   const fetchPrices = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API_URL}/prices/`);
+      console.log(response.data);
       setPrices(response.data);
+
+      // Extract names from the categories
+      const allNames = response.data.flatMap(price => price.categories.map(category => category.name));
+      setNames([...new Set(allNames)]); // Use a Set to remove duplicates
     } catch (err) {
       setError('Failed to fetch prices.');
     } finally {
@@ -97,6 +102,7 @@ export const PriceProvider = ({ children }) => {
     fetchPrices();
   }, [fetchPrices]);
 
+  // Inside PriceProvider
   return (
     <PriceContext.Provider
       value={{
@@ -109,7 +115,8 @@ export const PriceProvider = ({ children }) => {
         calculatePrice,
         singlePrice,
         fetchPriceById,
-        fetchPrices
+        fetchPrices,
+        names // Provide names here
       }}
     >
       {children}

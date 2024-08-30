@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { usePrices } from '../../../context/PriceContext'; // Adjust the import path as needed
-import { FaEye, FaEdit, FaTrash } from 'react-icons/fa'; // Icons for view, edit, and delete
+import { FaEye, FaTrash } from 'react-icons/fa'; // Icons for view, edit, and delete
 import { useNavigate } from 'react-router-dom';
 
 const ViewPrice = () => {
@@ -11,6 +11,7 @@ const ViewPrice = () => {
     const fetchData = async () => {
       console.log('Fetching prices...');
       await fetchPrices();
+      console.log('Prices fetched:', prices);
     };
     fetchData();
   }, [fetchPrices]);
@@ -48,9 +49,15 @@ const ViewPrice = () => {
             <tbody>
               {prices.map((price) => (
                 <tr key={price._id}>
-                  <td className="py-2 px-4 border-b text-gray-600">{price.categories[0]?.name}</td>
-                  <td className="py-2 px-4 border-b text-gray-600">₦{price.categories[0]?.basePrice.toLocaleString()}</td>
-                  <td className="py-2 px-4 border-b text-gray-600">₦{price.categories[0]?.insuranceCharge.toLocaleString()}</td>
+                  <td className="py-2 px-4 border-b text-gray-600">
+                    {price.categories?.[0]?.name || 'N/A'}
+                  </td>
+                  <td className="py-2 px-4 border-b text-gray-600">
+                    ₦{price.categories?.[0]?.basePrice?.toLocaleString() || 'N/A'}
+                  </td>
+                  <td className="py-2 px-4 border-b text-gray-600">
+                    ₦{price.categories?.[0]?.insuranceCharge?.toLocaleString() || 'N/A'}
+                  </td>
                   <td className="py-2 px-4 border-b text-gray-600">
                     <div className="flex space-x-2">
                       <button

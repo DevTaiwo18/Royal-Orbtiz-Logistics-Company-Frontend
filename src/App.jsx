@@ -8,6 +8,7 @@ import { CustomerProvider } from './context/CustomerContext';
 import { ShipmentProvider } from './context/ShipmentContext';
 import { ReceiptsProvider } from './context/ReceiptsContext';
 import { PriceProvider } from './context/PriceContext';
+import { BranchProvider } from './context/BranchContext';
 
 const App = () => {
   return (
@@ -17,17 +18,19 @@ const App = () => {
           <CustomerProvider>
             <ShipmentProvider>
               <ReceiptsProvider>
-                <Routes>
-                  <Route path="/" element={<Signin />} />
-                  <Route
-                    path="/dashboard/*"
-                    element={
-                      <ProtectedRoute>
-                        <Dashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-                </Routes>
+                <BranchProvider>
+                  <Routes>
+                    <Route path="/" element={<Signin />} />
+                    <Route
+                      path="/dashboard/*"
+                      element={
+                        <ProtectedRoute>
+                          <Dashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+                  </Routes>
+                </BranchProvider>
               </ReceiptsProvider>
             </ShipmentProvider>
           </CustomerProvider>

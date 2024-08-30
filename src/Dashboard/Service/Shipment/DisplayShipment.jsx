@@ -43,18 +43,16 @@ const DisplayShipment = () => {
 
     return (
         <div className="p-3 bg-gray-50 flex items-center justify-center">
-
             <div className="bg-white p-8 rounded-lg shadow-lg w-full">
-
                 <div className="mb-6">
                     <button
                         onClick={handleBack}
                         className="px-4 py-2 bg-gray-300 text-gray-700 font-semibold rounded-md shadow-md hover:bg-gray-400 flex items-center transition duration-300 ease-in-out"
                     >
-                        <FaArrowLeft className="mr-2" /> Back
+                        <FaArrowLeft className="mr-2" style={{ textTransform: 'uppercase' }} /> Back
                     </button>
                 </div>
-                <h1 className="text-3xl font-bold mb-6 text-gray-800">Shipment Details</h1>
+                <h1 className="text-3xl font-bold mb-6 text-gray-800" style={{ textTransform: 'uppercase' }}>Shipment Details</h1>
                 <div className="space-y-6">
                     {[
                         { label: 'Waybill Number', value: shipment.waybillNumber },
@@ -70,8 +68,8 @@ const DisplayShipment = () => {
                         { label: 'Paid Amount', value: formatCurrency(shipment.amountPaid) }
                     ].map((item, index) => (
                         <div key={index} className="flex justify-between">
-                            <span className="font-semibold text-gray-800">{item.label}:</span>
-                            <span className="text-gray-800 font-bold">{item.value}</span>
+                            <span className="font-semibold text-gray-800" style={{ textTransform: 'uppercase' }}>{item.label}:</span>
+                            <span className="text-gray-800 font-bold" style={{ textTransform: 'uppercase' }}>{item.value}</span>
                         </div>
                     ))}
                 </div>
