@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePrices } from '../../../context/PriceContext'; // Adjust path as needed
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; // Import CSS for notifications
@@ -7,10 +7,21 @@ const SettingPrice = () => {
   const { prices, loading, error, addPrice } = usePrices();
   const [categoryName, setCategoryName] = useState('');
   const [basePrice, setBasePrice] = useState('');
-  const [insuranceCharge, setInsuranceCharge] = useState('');
+  const [vatCharge, setvatCharge] = useState('');
   const [weightCharges, setWeightCharges] = useState([{ range: '', charge: '' }]);
   const [deliveryCharges, setDeliveryCharges] = useState([{ type: '', charge: '' }]);
   const [deliveryScopeCharges, setDeliveryScopeCharges] = useState([{ scope: '', charge: '' }]);
+
+  // Effect to calculate VAT whenever base price changes
+  useEffect(() => {
+    if (basePrice) {
+      const basePriceNumber = parseFloat(basePrice.replace(/,/g, '')) || 0;
+      const calculatedVAT = (basePriceNumber * 7.5) / 100;
+      setvatCharge(calculatedVAT.toFixed(2)); // Set VAT charge with 2 decimal places
+    } else {
+      setvatCharge('');
+    }
+  }, [basePrice]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,7 +29,7 @@ const SettingPrice = () => {
       categories: [{
         name: categoryName,
         basePrice: parseFloat(basePrice.replace(/,/g, '')),
-        insuranceCharge: parseFloat(insuranceCharge.replace(/,/g, '')),
+        vatCharge: parseFloat(vatCharge.replace(/,/g, '')),
         weightCharges: weightCharges.map(wc => ({
           range: wc.range,
           charge: parseFloat(wc.charge.replace(/,/g, ''))
@@ -36,14 +47,13 @@ const SettingPrice = () => {
     };
 
     try {
-
       console.log(newPrice);
 
       await addPrice(newPrice);
       // Reset form
       setCategoryName('');
       setBasePrice('');
-      setInsuranceCharge('');
+      setvatCharge('');
       setWeightCharges([{ range: '', charge: '' }]);
       setDeliveryCharges([{ type: '', charge: '' }]);
       setDeliveryScopeCharges([{ scope: '', charge: '' }]);
@@ -83,12 +93,12 @@ const SettingPrice = () => {
           />
         </div>
         <div>
-          <label htmlFor="insuranceCharge" className="block text-sm font-medium text-gray-700">Insurance Charge:</label>
+          <label htmlFor="vatCharge" className="block text-sm font-medium text-gray-700">Vat Charge:</label>
           <input
             type="text"
-            value={formatCurrency(insuranceCharge)}
-            onChange={(e) => setInsuranceCharge(e.target.value)}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-custom-purple focus:border-custom-purple sm:text-sm"
+            value={formatCurrency(vatCharge)}
+            readOnly
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-custom-purple focus:border-custom-purple sm:text-sm bg-gray-100"
           />
         </div>
         <div>

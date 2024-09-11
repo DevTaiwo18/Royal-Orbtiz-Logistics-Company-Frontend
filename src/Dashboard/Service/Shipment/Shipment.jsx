@@ -18,6 +18,8 @@ const Shipment = () => {
   const [weight, setWeight] = useState('');
   const [name, setName] = useState(''); // Updated from category to name
   const [insurance, setInsurance] = useState(false);
+  const [itemValue, setItemValue] = useState(''); // New state for item value
+  const [insuranceAmount, setInsuranceAmount] = useState(0); // New state for insurance amount
   const [totalPrice, setTotalPrice] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('cash'); // Default value
   const [amountPaid, setAmountPaid] = useState('');
@@ -37,7 +39,6 @@ const Shipment = () => {
       setAmountPaid(totalPrice);
     }
   }, [totalPrice]);
-
 
   useEffect(() => {
     const loadBranches = async () => {
@@ -85,8 +86,11 @@ const Shipment = () => {
 
     try {
       const price = await calculatePrice(shipmentDetails);
-      console.log(price);
-      setTotalPrice(price);
+      const itemValueNumber = parseFloat(itemValue) || 0;
+      const calculatedInsurance = insurance ? (itemValueNumber * 0.5) / 100 : 0;
+      setInsuranceAmount(calculatedInsurance);
+      const total = price + calculatedInsurance;
+      setTotalPrice(total);
     } catch (error) {
       console.error('Error calculating price:', error);
       setTotalPrice(null);
@@ -236,15 +240,14 @@ const Shipment = () => {
             className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
           >
             <option value="hubToHub">Hub to Hub</option>
-            <option value="homeDelivery">Home Delivery</option>
-            <option value="officePickup">Office Pickup</option>
+            <option value="officeToHub">Office to Hub</option> {/* Corrected option */}
           </select>
         </div>
 
         <div className="flex gap-8 mb-8">
           {/* Origin State */}
           <div className="flex-1 mb-4">
-            <label htmlFor="originState" className="block text-gray-600 text-lg font-semibold">Origin State</label>
+            <label htmlFor="originState" className="block text-gray-600 text-lg font-semibold">Origin</label>
             <input
               type="text"
               id="originState"
@@ -257,7 +260,7 @@ const Shipment = () => {
 
           {/* Destination State */}
           <div className="flex-1 mb-4">
-            <label htmlFor="destinationState" className="block text-gray-600 text-lg font-semibold">Destination State</label>
+            <label htmlFor="destinationState" className="block text-gray-600 text-lg font-semibold">Destination</label>
             <input
               type="text"
               id="destinationState"
@@ -300,17 +303,33 @@ const Shipment = () => {
           </div>
         </div>
 
-        <div className="mb-4">
-          <label htmlFor="insurance" className="inline-flex items-center text-gray-600 text-lg font-semibold">
+        <div className="flex gap-8 mb-8">
+          {/* Item Value */}
+          <div className="flex-1 mb-4">
+            <label htmlFor="itemValue" className="block text-gray-600 text-lg font-semibold">Value of the Item</label>
             <input
-              type="checkbox"
-              id="insurance"
-              checked={insurance}
-              onChange={() => setInsurance(!insurance)}
-              className="form-checkbox"
+              type="number"
+              id="itemValue"
+              value={itemValue}
+              onChange={(e) => setItemValue(e.target.value)}
+              placeholder="Enter the value of the item"
+              className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
             />
-            <span className="ml-2">Include Insurance</span>
-          </label>
+          </div>
+
+          {/* Insurance Option */}
+          <div className="flex-1 mb-4 mt-7">
+            <label htmlFor="insurance" className="flex items-center bg-gray-100 p-2 rounded-md border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 ease-in-out">
+              <input
+                type="checkbox"
+                id="insurance"
+                checked={insurance}
+                onChange={() => setInsurance(!insurance)}
+                className="form-checkbox h-5 w-5 text-blue-600 focus:ring-blue-500 rounded transition duration-150 ease-in-out"
+              />
+              <span className="ml-3 text-gray-700 text-lg font-medium">Include Insurance</span>
+            </label>
+          </div>
         </div>
 
         <div className="mb-4">
@@ -322,6 +341,11 @@ const Shipment = () => {
           >
             {loading ? 'Calculating Price...' : 'Calculate Price'}
           </button>
+        </div>
+
+        <div className="flex justify-between mb-2">
+          <span className="text-gray-600 text-lg font-semibold">Insurance Amount:</span>
+          <span className="text-gray-800 text-lg font-semibold">{formatCurrency(insuranceAmount)}</span>
         </div>
 
         <div className="flex justify-between mb-2">
@@ -386,4 +410,3 @@ const Shipment = () => {
 };
 
 export default Shipment;
-

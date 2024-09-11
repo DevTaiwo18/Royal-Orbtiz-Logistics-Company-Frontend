@@ -9,7 +9,7 @@ const UpdatePrice = () => {
     const { fetchPriceById, singlePrice, updatePrice, error } = usePrices();
     const [categoryName, setCategoryName] = useState('');
     const [basePrice, setBasePrice] = useState('');
-    const [insuranceCharge, setInsuranceCharge] = useState('');
+    const [vatCharge, setvatCharge] = useState('');
     const [weightCharges, setWeightCharges] = useState([{ range: '', charge: '' }]);
     const [deliveryCharges, setDeliveryCharges] = useState([{ type: '', charge: '' }]);
     const [deliveryScopeCharges, setDeliveryScopeCharges] = useState([{ scope: '', charge: '' }]);
@@ -23,7 +23,7 @@ const UpdatePrice = () => {
                 if (singlePrice) {
                     setCategoryName(singlePrice.categories[0]?.name || '');
                     setBasePrice(singlePrice.categories[0]?.basePrice || '');
-                    setInsuranceCharge(String(singlePrice.categories[0]?.insuranceCharge || ''));
+                    setvatCharge(String(singlePrice.categories[0]?.vatCharge || ''));
                     setWeightCharges(singlePrice.categories[0]?.weightCharges || [{ range: '', charge: '' }]);
                     setDeliveryCharges(singlePrice.categories[0]?.deliveryCharges || [{ type: '', charge: '' }]);
                     setDeliveryScopeCharges(singlePrice.categories[0]?.deliveryScopeCharges || [{ scope: '', charge: '' }]);
@@ -42,7 +42,7 @@ const UpdatePrice = () => {
             categories: [{
                 name: categoryName,
                 basePrice: parseFloat(basePrice.replace(/,/g, '')),
-                insuranceCharge: parseFloat(String(insuranceCharge).replace(/,/g, '')),
+                vatCharge: parseFloat(String(vatCharge).replace(/,/g, '')),
                 weightCharges: weightCharges.map(wc => ({
                     range: wc.range,
                     charge: parseFloat(String(wc.charge ?? '').replace(/,/g, '')) // Ensure wc.charge is a string
@@ -112,8 +112,8 @@ const UpdatePrice = () => {
                     <label className="block text-sm font-medium text-gray-700">Insurance Charge</label>
                     <input
                         type="text"
-                        value={insuranceCharge}
-                        onChange={(e) => setInsuranceCharge(e.target.value)}
+                        value={vatCharge}
+                        onChange={(e) => setvatCharge(e.target.value)}
                         className="mt-1 block w-full border border-gray-300 rounded-md p-2"
                         required
                     />

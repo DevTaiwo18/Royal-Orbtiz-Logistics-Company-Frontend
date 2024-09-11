@@ -54,7 +54,7 @@ const ViewPriceSinglePage = () => {
         <h2 className="text-3xl font-semibold text-gray-700">{singlePrice.categories[0]?.name}</h2>
         <div className="text-gray-600 space-y-4">
           <p><strong>Base Price:</strong> {formatCurrency(singlePrice.categories[0]?.basePrice)}</p>
-          <p><strong>Insurance Charge:</strong> {formatCurrency(singlePrice.categories[0]?.insuranceCharge)}</p>
+          <p><strong>Insurance Charge:</strong> {formatCurrency(singlePrice.categories[0]?.vatCharge)}</p>
           <div>
             <strong>Weight Charges:</strong>
             <ul className="list-disc ml-5 space-y-1">

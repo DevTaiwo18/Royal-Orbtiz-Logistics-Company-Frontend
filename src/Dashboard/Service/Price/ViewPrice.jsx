@@ -56,7 +56,7 @@ const ViewPrice = () => {
                     ₦{price.categories?.[0]?.basePrice?.toLocaleString() || 'N/A'}
                   </td>
                   <td className="py-2 px-4 border-b text-gray-600">
-                    ₦{price.categories?.[0]?.insuranceCharge?.toLocaleString() || 'N/A'}
+                    ₦{price.categories?.[0]?.vatCharge?.toLocaleString() || 'N/A'}
                   </td>
                   <td className="py-2 px-4 border-b text-gray-600">
                     <div className="flex space-x-2">
