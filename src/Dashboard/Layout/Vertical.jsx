@@ -1,7 +1,7 @@
 // src/components/Vertical.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { HomeIcon, TagIcon, ViewGridIcon, UserGroupIcon, OfficeBuildingIcon, TruckIcon, CogIcon, CurrencyDollarIcon } from '@heroicons/react/outline';
+import { HomeIcon, TagIcon, ViewGridIcon, UserGroupIcon, OfficeBuildingIcon, TruckIcon, CogIcon, CurrencyDollarIcon, UserIcon } from '@heroicons/react/outline';
 
 const Vertical = () => {
   return (
@@ -27,6 +27,10 @@ const Vertical = () => {
           <li className="flex items-center space-x-4">
             <CurrencyDollarIcon className="h-6 w-6" />
             <Link to="/dashboard/Payroll" className="flex-1 hover:text-gray-300">Payroll</Link>
+          </li>
+          <li className="flex items-center space-x-4">
+            <UserIcon className="h-6 w-6" /> {/* Updated icon for Rider */}
+            <Link to="/dashboard/rider" className="flex-1 hover:text-gray-300">Rider</Link>
           </li>
           <li className="flex items-center space-x-4">
             <TruckIcon className="h-6 w-6" />
