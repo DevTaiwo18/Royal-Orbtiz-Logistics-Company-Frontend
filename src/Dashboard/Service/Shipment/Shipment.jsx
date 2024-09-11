@@ -20,6 +20,7 @@ const Shipment = () => {
   const [insurance, setInsurance] = useState(false);
   const [itemValue, setItemValue] = useState(''); // New state for item value
   const [insuranceAmount, setInsuranceAmount] = useState(0); // New state for insurance amount
+  const [itemCondition, setItemCondition] = useState('Not Damaged or Good'); // New state for item condition
   const [totalPrice, setTotalPrice] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('cash'); // Default value
   const [amountPaid, setAmountPaid] = useState('');
@@ -117,7 +118,8 @@ const Shipment = () => {
       totalPrice,
       paymentMethod,
       amountPaid: parseFloat(amountPaid),
-      BranchName
+      BranchName,
+      itemCondition // Include item condition in the submission data
     };
 
     console.log(shipmentDetails);
@@ -332,6 +334,21 @@ const Shipment = () => {
           </div>
         </div>
 
+        {/* Item Condition */}
+        <div className="mb-4">
+          <label htmlFor="itemCondition" className="block text-gray-600 text-lg font-semibold">Item Condition</label>
+          <select
+            id="itemCondition"
+            value={itemCondition}
+            onChange={(e) => setItemCondition(e.target.value)}
+            className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
+          >
+            <option value="Not Damaged or Good">Not Damaged or Good</option>
+            <option value="Partially Damaged">Partially Damaged</option>
+            <option value="Damaged">Damaged</option>
+          </select>
+        </div>
+
         <div className="mb-4">
           <button
             type="button"
@@ -380,7 +397,7 @@ const Shipment = () => {
         </div>
 
         <div className="flex-1 mb-4">
-          <label htmlFor="branch" className="block text-gray-600 text-lg font-semibold">BranchName</label>
+          <label htmlFor="branch" className="block text-gray-600 text-lg font-semibold">Branch Name</label>
           <select
             id="branch"
             value={BranchName}

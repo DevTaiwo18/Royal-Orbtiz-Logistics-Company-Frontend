@@ -14,6 +14,7 @@ import ViewPriceSinglePage from './Service/Price/ViewPriceSinglePage';
 import UpdatePrice from './Service/Price/UpdatePrice';
 import ViewShipment from './Service/Shipment/ViewShipment';
 import Branch from './Service/Branch/Branch';
+import Payroll from './Service/Payroll/Payroll';
 
 const Dashboard = () => {
   return (
@@ -32,7 +33,8 @@ const Dashboard = () => {
             <Route path="/view" element={<ViewPrice />} />
             <Route path="/shipment" element={<Shipment />} />
             <Route path="/settings" element={<Setting />} />
-            <Route path="/Branch" element={<Branch />} />
+            <Route path="/branch" element={<Branch />} />
+            <Route path="/payroll" element={<Payroll />} />
           </Routes>
         </main>
       </div>
