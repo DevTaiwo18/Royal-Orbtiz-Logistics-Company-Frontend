@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCustomers } from '../../../context/CustomerContext';
 import { usePrices } from '../../../context/PriceContext';
-import { useShipments } from '../../../context/ShipmentContext'; // Import ShipmentContext
+import { useShipments } from '../../../context/ShipmentContext';
+import { usePayrolls } from '../../../context/PayrollContext';
+import { useRiders } from '../../../context/RiderContext';
 import { useBranch } from '../../../context/BranchContext';
 
 const Shipment = () => {
@@ -16,60 +18,72 @@ const Shipment = () => {
   const [originState, setOriginState] = useState('');
   const [destinationState, setDestinationState] = useState('');
   const [weight, setWeight] = useState('');
-  const [name, setName] = useState(''); // Updated from category to name
+  const [name, setName] = useState('');
   const [insurance, setInsurance] = useState(false);
-  const [itemValue, setItemValue] = useState(''); // New state for item value
-  const [insuranceAmount, setInsuranceAmount] = useState(0); // New state for insurance amount
-  const [itemCondition, setItemCondition] = useState('Not Damaged or Good'); // New state for item condition
+  const [itemValue, setItemValue] = useState('');
+  const [insuranceAmount, setInsuranceAmount] = useState(0);
+  const [itemCondition, setItemCondition] = useState('Not Damaged or Good');
   const [totalPrice, setTotalPrice] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState('cash'); // Default value
+  const [paymentMethod, setPaymentMethod] = useState('cash');
   const [amountPaid, setAmountPaid] = useState('');
-  const [loading, setLoading] = useState(false); // Add loading state
+  const [loading, setLoading] = useState(false);
   const [customerNotFound, setCustomerNotFound] = useState(false);
+  const [selectedPayroll, setSelectedPayroll] = useState('');
+  const [selectedRider, setSelectedRider] = useState('');
+  const [branches, setBranches] = useState([]);
+  const [branchName, setBranchName] = useState('');
+  const [riderError, setRiderError] = useState('');
+  const [payrollError, setPayrollError] = useState('');
+  const [submissionError, setSubmissionError] = useState(''); // State for submission errors
 
   const navigate = useNavigate();
   const { fetchCustomerByPhone } = useCustomers();
-  const { calculatePrice, names } = usePrices(); // Get names from context
-  const { createShipment } = useShipments(); // Get the createShipment function from context
+  const { calculatePrice, names = [] } = usePrices(); // Ensure names is an array
+  const { createShipment } = useShipments();
+  const { payrolls = [], fetchPayrolls } = usePayrolls();
+  const { riders = [], fetchRiders } = useRiders();
   const { fetchAllBranches } = useBranch();
-  const [branches, setBranches] = useState([]);
-  const [BranchName, setBranch] = useState('');
 
   useEffect(() => {
-    if (totalPrice !== null) {
-      setAmountPaid(totalPrice);
-    }
-  }, [totalPrice]);
+    const loadPayrollsAndRiders = async () => {
+      try {
+        await fetchPayrolls();
+      } catch (error) {
+        setPayrollError('Failed to load payrolls. Please try again later.');
+      }
 
-  useEffect(() => {
-    const loadBranches = async () => {
+      try {
+        await fetchRiders();
+      } catch (error) {
+        setRiderError('Failed to load riders. Please try again later.');
+      }
+
       try {
         const allBranches = await fetchAllBranches();
-        setBranches(allBranches);
+        setBranches(allBranches || []); // Ensure branches is an array
       } catch (error) {
         console.error('Error fetching branches:', error);
       }
     };
 
-    loadBranches();
-  }, []);
+    loadPayrollsAndRiders();
+  }, [fetchPayrolls, fetchRiders, fetchAllBranches]);
 
   const handlePhoneNumberBlur = async () => {
     if (senderPhoneNumber) {
       try {
         const customer = await fetchCustomerByPhone(senderPhoneNumber);
         if (customer) {
-          const { name } = customer;
-          setSenderName(name);
-          setCustomerNotFound(false); // Reset if customer is found
+          setSenderName(customer.name);
+          setCustomerNotFound(false);
         } else {
           setSenderName('');
-          setCustomerNotFound(true); // Show the error message
+          setCustomerNotFound(true);
         }
       } catch (error) {
         console.error('Error fetching customer:', error);
         setSenderName('');
-        setCustomerNotFound(true); // Show the error message
+        setCustomerNotFound(true);
       }
     }
   };
@@ -81,8 +95,8 @@ const Shipment = () => {
       originState,
       destinationState,
       weight: parseFloat(weight),
-      name, // Updated from category to name
-      insurance
+      name,
+      insurance,
     };
 
     try {
@@ -92,16 +106,28 @@ const Shipment = () => {
       setInsuranceAmount(calculatedInsurance);
       const total = price + calculatedInsurance;
       setTotalPrice(total);
+      setAmountPaid(total); // Automatically set amount paid to the total price
     } catch (error) {
       console.error('Error calculating price:', error);
       setTotalPrice(null);
+      setAmountPaid('');
     } finally {
       setLoading(false);
     }
   };
 
   const handleSubmit = async () => {
+    // Reset submission error state
+    setSubmissionError('');
     setLoading(true);
+
+    // Validate required fields before submitting
+    if (!senderName || !receiverName || !receiverAddress || !receiverPhone || !description || !originState || !destinationState || !weight || !name || !branchName || !selectedPayroll || !selectedRider) {
+      setSubmissionError('Please fill in all required fields.');
+      setLoading(false);
+      return;
+    }
+
     const shipmentDetails = {
       senderName,
       senderPhoneNumber,
@@ -113,42 +139,40 @@ const Shipment = () => {
       originState,
       destinationState,
       weight: parseFloat(weight),
-      name, // Updated from category to name
+      name,
       insurance,
       totalPrice,
       paymentMethod,
       amountPaid: parseFloat(amountPaid),
-      BranchName,
-      itemCondition // Include item condition in the submission data
+      itemCondition,
+      riderId: selectedRider, // Correct field names for backend
+      staffId: selectedPayroll, // Correct field names for backend
+      BranchName: branchName,   // Correct field names for backend
     };
-
-    console.log(shipmentDetails);
 
     try {
       const createdShipment = await createShipment(shipmentDetails);
-      console.log(createdShipment);
       if (createdShipment) {
         navigate(`/dashboard/shipment/${createdShipment.shipment._id}`);
       }
     } catch (error) {
       console.error('Error creating shipment:', error);
+      setSubmissionError('Failed to create shipment. Please check all details and try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const formatCurrency = (amount) => {
-    if (amount == null) return 'N/A';
-    return `₦${amount.toLocaleString()}`;
-  };
+  const formatCurrency = (amount) => (amount == null ? 'N/A' : `₦${amount.toLocaleString()}`);
 
   return (
     <div className="p-6 bg-white shadow-2xl min-h-screen">
       <h1 className="text-3xl font-bold mb-8 text-gray-800">Shipment Details</h1>
+      {riderError && <p className="text-red-500">{riderError}</p>}
+      {payrollError && <p className="text-red-500">{payrollError}</p>}
+      {submissionError && <p className="text-red-500">{submissionError}</p>} {/* Display submission errors */}
       <form className="space-y-8 bg-white p-6 rounded-lg">
-        {/* Sender and Receiver Information */}
         <div className="flex gap-8 mb-8">
-          {/* Sender Information */}
           <div className="flex-1 p-6 bg-gray-50 border border-gray-300 rounded-lg">
             <h2 className="text-2xl font-semibold mb-4 text-gray-700">Sender Information</h2>
             <div className="mb-4">
@@ -166,7 +190,6 @@ const Shipment = () => {
                 <p className="text-red-500 mt-2">No customer found. Please add them first.</p>
               )}
             </div>
-
             <div className="mb-4">
               <label htmlFor="senderName" className="block text-gray-600 text-lg font-semibold">Sender Name</label>
               <input
@@ -181,7 +204,6 @@ const Shipment = () => {
             </div>
           </div>
 
-          {/* Receiver Information */}
           <div className="flex-1 p-6 bg-gray-50 border border-gray-300 rounded-lg">
             <h2 className="text-2xl font-semibold mb-4 text-gray-700">Receiver Information</h2>
             <div className="mb-4">
@@ -220,7 +242,6 @@ const Shipment = () => {
           </div>
         </div>
 
-        {/* Shipment Details */}
         <div className="mb-4">
           <label htmlFor="description" className="block text-gray-600 text-lg font-semibold">Description</label>
           <textarea
@@ -242,12 +263,11 @@ const Shipment = () => {
             className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
           >
             <option value="hubToHub">Hub to Hub</option>
-            <option value="officeToHub">Office to Hub</option> {/* Corrected option */}
+            <option value="officeToHub">Office to Hub</option>
           </select>
         </div>
 
         <div className="flex gap-8 mb-8">
-          {/* Origin State */}
           <div className="flex-1 mb-4">
             <label htmlFor="originState" className="block text-gray-600 text-lg font-semibold">Origin</label>
             <input
@@ -260,7 +280,6 @@ const Shipment = () => {
             />
           </div>
 
-          {/* Destination State */}
           <div className="flex-1 mb-4">
             <label htmlFor="destinationState" className="block text-gray-600 text-lg font-semibold">Destination</label>
             <input
@@ -275,7 +294,6 @@ const Shipment = () => {
         </div>
 
         <div className="flex gap-8 mb-8">
-          {/* Weight */}
           <div className="flex-1 mb-4">
             <label htmlFor="weight" className="block text-gray-600 text-lg font-semibold">Weight (kg)</label>
             <input
@@ -288,7 +306,6 @@ const Shipment = () => {
             />
           </div>
 
-          {/* Name (Category) */}
           <div className="flex-1 mb-4">
             <label htmlFor="name" className="block text-gray-600 text-lg font-semibold">Category</label>
             <select
@@ -298,7 +315,7 @@ const Shipment = () => {
               className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
             >
               <option value="">Select Category</option>
-              {names.map((name, index) => (
+              {names.length > 0 && names.map((name, index) => (
                 <option key={index} value={name}>{name}</option>
               ))}
             </select>
@@ -306,7 +323,6 @@ const Shipment = () => {
         </div>
 
         <div className="flex gap-8 mb-8">
-          {/* Item Value */}
           <div className="flex-1 mb-4">
             <label htmlFor="itemValue" className="block text-gray-600 text-lg font-semibold">Value of the Item</label>
             <input
@@ -319,7 +335,6 @@ const Shipment = () => {
             />
           </div>
 
-          {/* Insurance Option */}
           <div className="flex-1 mb-4 mt-7">
             <label htmlFor="insurance" className="flex items-center bg-gray-100 p-2 rounded-md border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 ease-in-out">
               <input
@@ -334,7 +349,6 @@ const Shipment = () => {
           </div>
         </div>
 
-        {/* Item Condition */}
         <div className="mb-4">
           <label htmlFor="itemCondition" className="block text-gray-600 text-lg font-semibold">Item Condition</label>
           <select
@@ -370,7 +384,6 @@ const Shipment = () => {
           <span className="text-gray-800 text-lg font-semibold">{formatCurrency(totalPrice)}</span>
         </div>
 
-        {/* Amount Paid */}
         <div className="mb-4">
           <label htmlFor="amountPaid" className="block text-gray-600 text-lg font-semibold">Amount Paid</label>
           <input
@@ -382,7 +395,6 @@ const Shipment = () => {
           />
         </div>
 
-        {/* Payment Method */}
         <div className="mb-4">
           <label htmlFor="paymentMethod" className="block text-gray-600 text-lg font-semibold">Payment Method</label>
           <select
@@ -400,13 +412,43 @@ const Shipment = () => {
           <label htmlFor="branch" className="block text-gray-600 text-lg font-semibold">Branch Name</label>
           <select
             id="branch"
-            value={BranchName}
-            onChange={(e) => setBranch(e.target.value)}
+            value={branchName}
+            onChange={(e) => setBranchName(e.target.value)}
             className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
           >
             <option value="">Select Branch</option>
-            {branches.map((branch) => (
-              <option key={branch._id} value={`${branch.name}`}>{branch.name}</option>
+            {branches.length > 0 && branches.map((branch) => (
+              <option key={branch._id} value={branch.name}>{branch.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="mb-4">
+          <label htmlFor="payroll" className="block text-gray-600 text-lg font-semibold">Staff Responsible</label>
+          <select
+            id="payroll"
+            value={selectedPayroll}
+            onChange={(e) => setSelectedPayroll(e.target.value)}
+            className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
+          >
+            <option value="">Select Staff</option>
+            {payrolls.length > 0 && payrolls.map((payroll) => (
+              <option key={payroll._id} value={payroll._id}>{payroll.employeeName}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="mb-4">
+          <label htmlFor="rider" className="block text-gray-600 text-lg font-semibold">Rider Responsible</label>
+          <select
+            id="rider"
+            value={selectedRider}
+            onChange={(e) => setSelectedRider(e.target.value)}
+            className="mt-1 py-2 px-3 border border-gray-300 rounded-lg w-full outline-none focus:ring-2 focus:ring-yellow-100"
+          >
+            <option value="">Select Rider</option>
+            {riders.length > 0 && riders.map((rider) => (
+              <option key={rider._id} value={rider._id}>{rider.riderName}</option>
             ))}
           </select>
         </div>
