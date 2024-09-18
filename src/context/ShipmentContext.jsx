@@ -1,3 +1,4 @@
+// src/context/ShipmentContext.jsx
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 
@@ -14,12 +15,13 @@ export const ShipmentProvider = ({ children }) => {
 
     // Fetch all shipments
     const fetchShipments = async () => {
+        setLoading(true);
         try {
             const response = await axios.get(`${API_URL}/shipments/`);
             setShipments(response.data);
-            setLoading(false);
         } catch (err) {
             setError(err.message);
+        } finally {
             setLoading(false);
         }
     };
@@ -31,6 +33,20 @@ export const ShipmentProvider = ({ children }) => {
             return response.data;
         } catch (err) {
             setError(err.message);
+            return null;
+        }
+    };
+
+    // Fetch a shipment by Waybill Number
+    const fetchShipmentByWaybillNumber = async (waybillNumber) => {
+        try {
+            console.log(`Fetching shipment for waybill number: ${waybillNumber}`);
+            const response = await axios.get(`${API_URL}/shipments/waybill/${waybillNumber.trim()}`);
+            console.log('Response:', response.data);
+            return response.data;
+        } catch (err) {
+            setError(err.response?.data?.message || err.message);
+            console.error('Error fetching shipment:', err);
             return null;
         }
     };
@@ -78,7 +94,11 @@ export const ShipmentProvider = ({ children }) => {
     }, []);
 
     return (
-        <ShipmentContext.Provider value={{ shipments, loading, error, createShipment, updateShipment, deleteShipment, fetchShipments, fetchShipmentById }}>
+        <ShipmentContext.Provider value={{
+            shipments, loading, error, createShipment, updateShipment, 
+            deleteShipment, fetchShipments, fetchShipmentById, 
+            fetchShipmentByWaybillNumber
+        }}>
             {children}
         </ShipmentContext.Provider>
     );
